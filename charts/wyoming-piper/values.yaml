@@ -1,0 +1,125 @@
+replicaCount: 1
+
+image:
+  repository: rhasspy/wyoming-piper
+  tag: 1.6.3
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 10200
+
+# Piper voice configuration
+# Recommended for Home Assistant: en_US-lessac-medium (good quality, fast)
+# Available voices: See README for full list
+# Format: language_country-speaker-quality (e.g., en_US-lessac-medium)
+voice: en_US-lessac-medium
+
+# Speaker ID or name for multi-speaker voices (optional)
+# Only used with voices that support multiple speakers
+speaker: ""
+
+# Voice quality parameters
+# Generator noise (0.0-1.0, higher = more variable/natural, lower = more consistent)
+noiseScale: 0.667
+
+# Phoneme length scale (>1.0 = slower speech, <1.0 = faster speech)
+lengthScale: 1.0
+
+# Phoneme width noise (adds variation to phoneme duration)
+noiseWScale: 0.333
+
+# Automatically add punctuation if missing
+autoPunctuation: ".?!"
+
+# Audio streaming configuration
+# Enable streaming on sentence boundaries for lower latency
+streaming: true
+
+# Samples per audio chunk
+samplesPerChunk: 1024
+
+# Update voices list on startup (checks for new voices)
+updateVoices: false
+
+# Enable CUDA GPU acceleration (requires onnxruntime-gpu)
+# Not recommended for Home Assistant voice - CPU is sufficient for TTS
+useCuda: false
+
+# Enable debug logging for troubleshooting
+debug: false
+
+# Additional command line arguments
+# These will be appended to the command
+extraArgs: []
+# Example:
+# extraArgs:
+#   - "--log-format"
+#   - "json"
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 250m
+  #   memory: 512Mi
+
+# Security context for the container
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Persistent storage for voice models (recommended to avoid re-downloading on restart)
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  # Use an existing claim
+  existingClaim: ""
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Liveness probe configuration
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3

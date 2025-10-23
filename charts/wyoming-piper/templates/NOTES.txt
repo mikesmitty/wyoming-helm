@@ -1,0 +1,64 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+Wyoming Piper is now running and ready for Home Assistant text-to-speech integration.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+Service endpoint:
+
+{{- if eq .Values.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "wyoming-piper.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Wyoming Piper URL: tcp://$NODE_IP:$NODE_PORT"
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "wyoming-piper.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "wyoming-piper.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Wyoming Piper URL: tcp://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if eq .Values.service.type "ClusterIP" }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "wyoming-piper.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Forward local port to Wyoming Piper:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.service.port }}:{{ .Values.service.port }}"
+  echo "Then access at: tcp://127.0.0.1:{{ .Values.service.port }}"
+{{- end }}
+
+Configuration:
+  - Voice: {{ .Values.voice }}
+  {{- if .Values.speaker }}
+  - Speaker: {{ .Values.speaker }}
+  {{- end }}
+  - Noise Scale: {{ .Values.noiseScale }}
+  - Length Scale: {{ .Values.lengthScale }}
+  - Streaming: {{ .Values.streaming }}
+
+{{- if .Values.persistence.enabled }}
+Voice models are cached in PVC: {{ .Values.persistence.existingClaim | default (printf "%s-data" (include "wyoming-piper.fullname" .)) }}
+{{- else }}
+WARNING: Persistence is disabled. Voice models will be re-downloaded on pod restart.
+         Enable persistence for faster startup times.
+{{- end }}
+
+For Home Assistant integration, add to your configuration.yaml:
+
+  wyoming:
+    - platform: piper
+{{- if eq .Values.service.type "ClusterIP" }}
+      host: {{ include "wyoming-piper.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- else }}
+      host: <SERVICE_IP>
+{{- end }}
+      port: {{ .Values.service.port }}
+
+Voice selection tips:
+  - For best quality: Use "high" quality voices (e.g., en_US-lessac-high)
+  - For balanced performance: Use "medium" quality voices (default)
+  - For fastest TTS: Use "low" quality voices
+
+For more information:
+  https://github.com/rhasspy/wyoming-piper
+  https://www.home-assistant.io/integrations/wyoming/

@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wyoming-piper.fullname" . }}
+  labels:
+    {{- include "wyoming-piper.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "wyoming-piper.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "wyoming-piper.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: wyoming-piper
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+        - "--voice"
+        - "{{ .Values.voice }}"
+        {{- if .Values.speaker }}
+        - "--speaker"
+        - "{{ .Values.speaker }}"
+        {{- end }}
+        {{- if .Values.noiseScale }}
+        - "--noise-scale"
+        - "{{ .Values.noiseScale }}"
+        {{- end }}
+        {{- if .Values.lengthScale }}
+        - "--length-scale"
+        - "{{ .Values.lengthScale }}"
+        {{- end }}
+        {{- if .Values.noiseWScale }}
+        - "--noise-w"
+        - "{{ .Values.noiseWScale }}"
+        {{- end }}
+        {{- if .Values.autoPunctuation }}
+        - "--auto-punctuation"
+        - "{{ .Values.autoPunctuation }}"
+        {{- end }}
+        {{- if .Values.streaming }}
+        - "--streaming"
+        {{- end }}
+        - "--samples-per-chunk"
+        - "{{ .Values.samplesPerChunk }}"
+        {{- if .Values.updateVoices }}
+        - "--update-voices"
+        {{- end }}
+        {{- if .Values.useCuda }}
+        - "--use-cuda"
+        {{- end }}
+        {{- if .Values.debug }}
+        - "--debug"
+        {{- end }}
+        - "--data-dir"
+        - "/data"
+        {{- with .Values.extraArgs }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+        - name: wyoming
+          containerPort: {{ .Values.service.port }}
+          protocol: TCP
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.livenessProbe.tcpSocket.port }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.readinessProbe.tcpSocket.port }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+        {{- end }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        volumeMounts:
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          mountPath: /data
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (printf "%s-data" (include "wyoming-piper.fullname" .)) }}
+      {{- end }}

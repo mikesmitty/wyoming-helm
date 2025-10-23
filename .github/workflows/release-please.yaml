@@ -1,0 +1,78 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      wyoming_whisper_release_created: ${{ steps.release.outputs['charts/wyoming-whisper--release_created'] }}
+      wyoming_piper_release_created: ${{ steps.release.outputs['charts/wyoming-piper--release_created'] }}
+    steps:
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-helm-charts:
+    needs: release-please
+    if: |
+      needs.release-please.outputs.wyoming_whisper_release_created == 'true' ||
+      needs.release-please.outputs.wyoming_piper_release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    env:
+      REGISTRY: ghcr.io
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        id: cr
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_SKIP_EXISTING: "true"
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.cr.outputs.changed_charts }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Charts to GHCR
+        if: ${{ steps.cr.outputs.changed_charts }}
+        run: |
+          for pkg in .cr-release-packages/*; do
+            if [ -z "${pkg:-}" ]; then
+              break
+            fi
+            helm push "${pkg}" oci://${{ env.REGISTRY }}/${{ github.repository_owner }}
+          done

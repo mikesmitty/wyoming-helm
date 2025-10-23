@@ -1,0 +1,120 @@
+replicaCount: 1
+
+image:
+  repository: rhasspy/wyoming-whisper
+  tag: 2.5.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 10300
+
+# Whisper model configuration
+# Recommended for Home Assistant voice: tiny, base, or base-int8 for fast response times
+# Available models: tiny, base, small, medium, large, large-v2, large-v3, large-v3-turbo
+# Quantized (faster): tiny-int8, base-int8, small-int8, medium-int8, distil-large-v3
+# HuggingFace models: Systran/faster-distil-whisper-small.en, Systran/faster-whisper-large-v3
+model: base
+
+# Language code (e.g., en, de, fr, es, etc.) - leave empty for auto-detection
+language: ""
+
+# Beam size for transcription (higher = more accurate but slower, 0 for auto)
+# For voice commands, lower values (1-3) provide faster responses
+beamSize: 5
+
+# Device to use for inference (cpu, cuda, auto)
+# CPU is recommended for Home Assistant voice use cases
+device: cpu
+
+# Compute type for inference optimization
+# Options: default, int8, int8_float16, int16, float16, float32
+# For CPU: int8 provides best performance with minimal quality loss
+# For larger throughput workloads, consider float16 with GPU
+computeType: default
+
+# Initial prompt to provide context for the first transcription window
+# Example: "Home Assistant voice commands" or domain-specific context
+initialPrompt: ""
+
+# Don't check HuggingFace hub for model updates on every start
+# Recommended: true for faster startup after initial model download
+localFilesOnly: false
+
+# Enable debug logging for troubleshooting
+debug: false
+
+# Additional command line arguments
+# These will be appended to the command
+extraArgs: []
+# Example:
+# extraArgs:
+#   - "--log-format"
+#   - "json"
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 2000m
+  #   memory: 4Gi
+  # requests:
+  #   cpu: 1000m
+  #   memory: 2Gi
+
+# Security context for the container
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Persistent storage for models (recommended to avoid re-downloading on restart)
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  # Use an existing claim
+  existingClaim: ""
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Liveness probe configuration
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3

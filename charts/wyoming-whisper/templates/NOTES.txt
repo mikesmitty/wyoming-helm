@@ -1,0 +1,66 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+Wyoming Whisper is now running and ready for Home Assistant voice assistant integration.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+Service endpoint:
+
+{{- if eq .Values.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "wyoming-whisper.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Wyoming Whisper URL: tcp://$NODE_IP:$NODE_PORT"
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "wyoming-whisper.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "wyoming-whisper.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Wyoming Whisper URL: tcp://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if eq .Values.service.type "ClusterIP" }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "wyoming-whisper.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Forward local port to Wyoming Whisper:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.service.port }}:{{ .Values.service.port }}"
+  echo "Then access at: tcp://127.0.0.1:{{ .Values.service.port }}"
+{{- end }}
+
+Configuration:
+  - Model: {{ .Values.model }}
+  {{- if .Values.language }}
+  - Language: {{ .Values.language }}
+  {{- else }}
+  - Language: auto-detect
+  {{- end }}
+  - Device: {{ .Values.device }}
+  - Compute Type: {{ .Values.computeType }}
+  - Beam Size: {{ .Values.beamSize }}
+
+{{- if .Values.persistence.enabled }}
+Models are cached in PVC: {{ .Values.persistence.existingClaim | default (printf "%s-data" (include "wyoming-whisper.fullname" .)) }}
+{{- else }}
+WARNING: Persistence is disabled. Models will be re-downloaded on pod restart.
+         Enable persistence for faster startup times.
+{{- end }}
+
+For Home Assistant integration, add to your configuration.yaml:
+
+  wyoming:
+    - platform: whisper
+{{- if eq .Values.service.type "ClusterIP" }}
+      host: {{ include "wyoming-whisper.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- else }}
+      host: <SERVICE_IP>
+{{- end }}
+      port: {{ .Values.service.port }}
+
+Performance tips:
+  - For faster voice responses, use model: base-int8 or tiny-int8
+  - Set beamSize: 1 for lowest latency
+  - Enable localFilesOnly: true after first model download
+
+For more information:
+  https://github.com/rhasspy/wyoming-whisper
+  https://www.home-assistant.io/integrations/wyoming/
