@@ -1,1 +1,4 @@
-{}
+{
+    "charts/wyoming-whisper": "0.4.0",
+    "charts/wyoming-piper": "0.4.0"
+}
