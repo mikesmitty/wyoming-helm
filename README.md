@@ -48,10 +48,10 @@ Install specific versions:
 
 ```bash
 # Install Whisper with specific version
-helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper --version 1.0.0
+helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper --version 0.5.0
 
 # Install Piper with specific version
-helm install piper oci://ghcr.io/mikesmitty/wyoming-piper --version 1.0.0
+helm install piper oci://ghcr.io/mikesmitty/wyoming-piper --version 0.5.0
 ```
 
 ### Install from Source
@@ -160,7 +160,7 @@ lengthScale: 1.0
 
 This repository uses [Release Please](https://github.com/googleapis/release-please) for automated versioning and changelog generation. Each chart is versioned independently:
 
-- Charts are tagged as: `wyoming-whisper-v1.0.0`, `wyoming-piper-v1.0.0`
+- Charts are tagged as: `wyoming-whisper-v0.5.0`, `wyoming-piper-v0.5.0`
 - Releases are automatically published to GitHub Container Registry (GHCR) as OCI artifacts
 - Changelogs are maintained in each chart's directory
 
