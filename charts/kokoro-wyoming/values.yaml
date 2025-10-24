@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/mikesmitty/kokoro-wyoming-tts
-  tag: 0.4.0
+  tag: ""
   pullPolicy: IfNotPresent
 
 service:

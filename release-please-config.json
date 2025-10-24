@@ -24,11 +24,6 @@
           "type": "yaml",
           "path": "Chart.yaml",
           "jsonpath": "$.appVersion"
-        },
-        {
-          "type": "yaml",
-          "path": "values.yaml",
-          "jsonpath": "$.image.tag"
         }
       ]
     }
