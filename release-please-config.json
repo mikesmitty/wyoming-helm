@@ -13,8 +13,29 @@
       "package-name": "wyoming-piper"
     },
     "charts/kokoro-wyoming": {
-      "release-type": "helm",
-      "package-name": "kokoro-wyoming"
+      "release-type": "generic",
+      "package-name": "kokoro-wyoming",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "kokoro-wyoming/Dockerfile"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/kokoro-wyoming/Chart.yaml",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/kokoro-wyoming/Chart.yaml",
+          "jsonpath": "$.appVersion"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/kokoro-wyoming/values.yaml",
+          "jsonpath": "$.image.tag"
+        }
+      ]
     }
   }
 }
