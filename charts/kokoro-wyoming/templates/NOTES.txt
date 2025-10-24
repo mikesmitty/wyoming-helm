@@ -1,0 +1,68 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+Kokoro Wyoming is now running and ready for Home Assistant text-to-speech integration.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+Service endpoint:
+
+{{- if eq .Values.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "kokoro-wyoming.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Kokoro Wyoming URL: tcp://$NODE_IP:$NODE_PORT"
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "kokoro-wyoming.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "kokoro-wyoming.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Kokoro Wyoming URL: tcp://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if eq .Values.service.type "ClusterIP" }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "kokoro-wyoming.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Forward local port to Kokoro Wyoming:"
+  echo "  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.service.port }}:{{ .Values.service.port }}"
+  echo "Then access at: tcp://127.0.0.1:{{ .Values.service.port }}"
+{{- end }}
+
+Configuration:
+  - ONNX Provider: {{ .Values.onnxProvider }}
+  - Debug: {{ .Values.debug }}
+
+{{- if .Values.persistence.enabled }}
+Model cache is stored in PVC: {{ .Values.persistence.existingClaim | default (printf "%s-cache" (include "kokoro-wyoming.fullname" .)) }}
+{{- else }}
+WARNING: Persistence is disabled. Models may be re-downloaded on pod restart.
+         Enable persistence for faster startup times.
+{{- end }}
+
+For Home Assistant integration, add to your configuration.yaml:
+
+  wyoming:
+    - platform: tts
+{{- if eq .Values.service.type "ClusterIP" }}
+      host: {{ include "kokoro-wyoming.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+{{- else }}
+      host: <SERVICE_IP>
+{{- end }}
+      port: {{ .Values.service.port }}
+
+Voice configuration:
+  - Voices are selected in Home Assistant when configuring the TTS provider
+  - Available voices are read directly from the Kokoro model
+  - For voice list, see: https://github.com/thewh1teagle/kokoro-onnx
+
+{{- if eq .Values.onnxProvider "OpenVINOExecutionProvider" }}
+
+Intel GPU Acceleration:
+  - ONNX Provider is set to OpenVINOExecutionProvider
+  - Ensure your node has Intel GPU device plugin installed
+  - Add gpu.intel.com/i915 resource requests/limits in values if needed
+{{- end }}
+
+For more information:
+  https://github.com/nordwestt/kokoro-wyoming
+  https://github.com/thewh1teagle/kokoro-onnx
+  https://www.home-assistant.io/integrations/wyoming/

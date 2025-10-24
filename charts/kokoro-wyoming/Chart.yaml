@@ -1,0 +1,17 @@
+apiVersion: v2
+name: kokoro-wyoming
+description: A Helm chart for Kokoro Wyoming text-to-speech service
+type: application
+version: 0.4.0
+appVersion: 0.4.0
+keywords:
+  - kokoro
+  - wyoming
+  - text-to-speech
+  - tts
+  - home-assistant
+maintainers:
+  - name: mikesmitty
+sources:
+  - https://github.com/nordwestt/kokoro-wyoming
+  - https://github.com/thewh1teagle/kokoro-onnx

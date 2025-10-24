@@ -30,18 +30,33 @@ Natural-sounding text-to-speech for Home Assistant voice responses.
 
 [📖 Piper Chart Documentation](charts/wyoming-piper/README.md)
 
+### Kokoro Wyoming - High-Quality TTS
+Neural text-to-speech with Intel GPU acceleration support.
+
+- **Chart**: `oci://ghcr.io/mikesmitty/kokoro-wyoming`
+- **Source**: `charts/kokoro-wyoming`
+- **Image**: `ghcr.io/mikesmitty/kokoro-wyoming`
+- **Default Port**: 10210
+- **Use Case**: High-quality TTS, Intel GPU acceleration
+- **Recommended Provider**: `OpenVINOExecutionProvider` (Intel GPU/CPU)
+
+[📖 Kokoro Chart Documentation](charts/kokoro-wyoming/README.md)
+
 ## Quick Start
 
 ### Install from OCI Registry (Recommended)
 
-Install both charts for a complete voice assistant:
+Install charts for a complete voice assistant:
 
 ```bash
 # Install speech-to-text (Whisper)
 helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper
 
-# Install text-to-speech (Piper)
+# Install text-to-speech (Piper - fast, lightweight)
 helm install piper oci://ghcr.io/mikesmitty/wyoming-piper
+
+# OR install Kokoro TTS (high quality, Intel GPU support)
+helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming
 ```
 
 Install specific versions:
@@ -52,6 +67,9 @@ helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper --version 0.5.0
 
 # Install Piper with specific version
 helm install piper oci://ghcr.io/mikesmitty/wyoming-piper --version 0.5.0
+
+# Install Kokoro with specific version
+helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming --version 0.5.0
 ```
 
 ### Install from Source
@@ -66,8 +84,10 @@ cd wyoming-helm
 # Install speech-to-text (Whisper)
 helm install whisper ./charts/wyoming-whisper
 
-# Install text-to-speech (Piper)
+# Install text-to-speech (Piper or Kokoro)
 helm install piper ./charts/wyoming-piper
+# OR
+helm install kokoro ./charts/kokoro-wyoming
 ```
 
 ## Home Assistant Integration
@@ -160,7 +180,7 @@ lengthScale: 1.0
 
 This repository uses [Release Please](https://github.com/googleapis/release-please) for automated versioning and changelog generation. Each chart is versioned independently:
 
-- Charts are tagged as: `wyoming-whisper-v0.5.0`, `wyoming-piper-v0.5.0`
+- Charts are tagged as: `wyoming-whisper-v0.5.0`, `wyoming-piper-v0.5.0`, `kokoro-wyoming-v0.5.0`
 - Releases are automatically published to GitHub Container Registry (GHCR) as OCI artifacts
 - Changelogs are maintained in each chart's directory
 
@@ -170,6 +190,7 @@ Browse published charts on GitHub Container Registry:
 
 - **Whisper**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/wyoming-whisper
 - **Piper**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/wyoming-piper
+- **Kokoro**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/kokoro-wyoming
 
 Or use Helm to show available versions:
 
@@ -179,6 +200,9 @@ helm show chart oci://ghcr.io/mikesmitty/wyoming-whisper
 
 # Show Wyoming Piper versions
 helm show chart oci://ghcr.io/mikesmitty/wyoming-piper
+
+# Show Kokoro Wyoming versions
+helm show chart oci://ghcr.io/mikesmitty/kokoro-wyoming
 ```
 
 View chart values before installing:
@@ -189,6 +213,9 @@ helm show values oci://ghcr.io/mikesmitty/wyoming-whisper
 
 # Show default values for Wyoming Piper
 helm show values oci://ghcr.io/mikesmitty/wyoming-piper
+
+# Show default values for Kokoro Wyoming
+helm show values oci://ghcr.io/mikesmitty/kokoro-wyoming
 ```
 
 ## Development
@@ -199,6 +226,7 @@ helm show values oci://ghcr.io/mikesmitty/wyoming-piper
 # Lint all charts
 helm lint charts/wyoming-whisper
 helm lint charts/wyoming-piper
+helm lint charts/kokoro-wyoming
 ```
 
 ### Testing Charts
@@ -207,10 +235,12 @@ helm lint charts/wyoming-piper
 # Test template rendering
 helm template test charts/wyoming-whisper
 helm template test charts/wyoming-piper
+helm template test charts/kokoro-wyoming
 
 # Install locally for testing
 helm install test-whisper charts/wyoming-whisper --dry-run
 helm install test-piper charts/wyoming-piper --dry-run
+helm install test-kokoro charts/kokoro-wyoming --dry-run
 ```
 
 ## Contributing

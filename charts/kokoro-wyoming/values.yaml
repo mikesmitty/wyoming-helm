@@ -1,0 +1,103 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/mikesmitty/kokoro-wyoming
+  tag: 0.5.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 10210
+
+# Kokoro TTS configuration
+# Voice is selected in Home Assistant configuration
+# See: https://github.com/thewh1teagle/kokoro-onnx for available voices
+
+# ONNX Runtime execution provider
+# For Intel GPU acceleration: OpenVINOExecutionProvider
+# For CPU only: CPUExecutionProvider (default)
+# For CUDA GPU: CUDAExecutionProvider
+onnxProvider: OpenVINOExecutionProvider
+
+# Enable debug logging for troubleshooting
+debug: false
+
+# Additional command line arguments
+# These will be appended to the command
+extraArgs: []
+# Example:
+# extraArgs:
+#   - "--log-format"
+#   - "json"
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 2Gi
+  #   gpu.intel.com/i915: 1  # For Intel GPU acceleration
+  # requests:
+  #   cpu: 250m
+  #   memory: 1Gi
+  #   gpu.intel.com/i915: 1  # For Intel GPU acceleration
+
+# Security context for the container
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Persistent storage for model cache (optional but recommended)
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 2Gi
+  # Use an existing claim
+  existingClaim: ""
+
+# Node selector for pod assignment
+nodeSelector: {}
+# Example for Intel GPU nodes:
+# nodeSelector:
+#   intel.feature.node.kubernetes.io/gpu: "true"
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Liveness probe configuration
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3

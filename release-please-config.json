@@ -11,6 +11,13 @@
     "charts/wyoming-piper": {
       "release-type": "helm",
       "package-name": "wyoming-piper"
+    },
+    "charts/kokoro-wyoming": {
+      "release-type": "helm",
+      "package-name": "kokoro-wyoming",
+      "extra-files": [
+        "kokoro-wyoming/Dockerfile"
+      ]
     }
   }
 }
