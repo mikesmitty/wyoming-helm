@@ -18,21 +18,16 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "kokoro-wyoming/Dockerfile"
+          "path": "../../kokoro-wyoming/Dockerfile"
         },
         {
           "type": "yaml",
-          "path": "charts/kokoro-wyoming/Chart.yaml",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "yaml",
-          "path": "charts/kokoro-wyoming/Chart.yaml",
+          "path": "Chart.yaml",
           "jsonpath": "$.appVersion"
         },
         {
           "type": "yaml",
-          "path": "charts/kokoro-wyoming/values.yaml",
+          "path": "values.yaml",
           "jsonpath": "$.image.tag"
         }
       ]
