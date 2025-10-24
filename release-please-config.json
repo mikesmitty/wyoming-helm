@@ -18,7 +18,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "../../kokoro-wyoming/Dockerfile"
+          "path": "docker/Dockerfile"
         },
         {
           "type": "yaml",
