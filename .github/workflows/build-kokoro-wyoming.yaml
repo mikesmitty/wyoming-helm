@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - ".github/workflows/build-kokoro-wyoming.yaml"
-      - "charts/kokoro-wyoming/Chart.yaml"
       - "charts/kokoro-wyoming/docker/**"
   schedule:
     # Rebuild monthly to get updates
