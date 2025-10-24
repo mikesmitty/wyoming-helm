@@ -13,7 +13,7 @@
       "package-name": "wyoming-piper"
     },
     "charts/kokoro-wyoming": {
-      "release-type": "generic",
+      "release-type": "helm",
       "package-name": "kokoro-wyoming",
       "extra-files": [
         {
