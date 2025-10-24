@@ -10,7 +10,7 @@ This chart is optimized for **Home Assistant voice assistant** deployments with 
 - **Easy integration** - Direct Wyoming protocol support for Home Assistant
 
 The chart deploys:
-- **Kokoro Wyoming** (`ghcr.io/mikesmitty/kokoro-wyoming`) - Kokoro TTS with Wyoming protocol support
+- **Kokoro Wyoming** (`ghcr.io/mikesmitty/kokoro-wyoming-tts`) - Kokoro TTS with Wyoming protocol support
 - **Persistent Storage** - Optional PVC for caching models (recommended)
 - **Health Checks** - Liveness and readiness probes for reliability
 
@@ -95,7 +95,7 @@ The following table lists the configurable parameters:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `replicaCount` | Number of replicas | `1` |
-| `image.repository` | Kokoro Wyoming image repository | `ghcr.io/mikesmitty/kokoro-wyoming` |
+| `image.repository` | Kokoro Wyoming image repository | `ghcr.io/mikesmitty/kokoro-wyoming-tts` |
 | `image.tag` | Image tag | `latest` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `service.type` | Service type | `ClusterIP` |
