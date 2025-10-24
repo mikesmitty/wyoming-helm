@@ -2,7 +2,7 @@ apiVersion: v2
 name: kokoro-wyoming
 description: A Helm chart for Kokoro Wyoming text-to-speech service
 type: application
-version: 0.5.0
+version: 0.5.1
 appVersion: latest
 keywords:
   - kokoro
