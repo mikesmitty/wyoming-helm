@@ -14,10 +14,7 @@
     },
     "charts/kokoro-wyoming": {
       "release-type": "helm",
-      "package-name": "kokoro-wyoming",
-      "extra-files": [
-        "kokoro-wyoming/Dockerfile"
-      ]
+      "package-name": "kokoro-wyoming"
     }
   }
 }

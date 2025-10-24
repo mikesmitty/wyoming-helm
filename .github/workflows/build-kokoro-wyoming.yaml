@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/build-kokoro-wyoming.yaml"
       - "kokoro-wyoming/**"
+      - "charts/kokoro-wyoming/Chart.yaml"
   schedule:
     # Rebuild monthly to get updates
     - cron: "0 0 1 * *"
@@ -52,8 +53,8 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ steps.chart-version.outputs.version }}
+            type=raw,value=${{ steps.chart-version.outputs.version }}-{{date 'YYYYMMDD'}}
             type=sha,prefix={{branch}}-
-            type=raw,value={{date 'YYYYMMDD'}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
