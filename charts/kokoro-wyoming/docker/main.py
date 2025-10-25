@@ -19,7 +19,7 @@ import numpy as np
 
 from wyoming.info import Attribution, TtsProgram, TtsVoice, TtsVoiceSpeaker, Describe, Info
 from wyoming.server import AsyncServer
-from wyoming.tts import Synthesize
+from wyoming.tts import Synthesize, SynthesizeStart, SynthesizeChunk, SynthesizeStop, SynthesizeStopped
 from wyoming.audio import AudioChunk, AudioStart, AudioStop
 from wyoming.event import Event
 import re
@@ -93,6 +93,11 @@ class KokoroEventHandler(AsyncEventHandler):
         self.args = args
         self.wyoming_info_event = wyoming_info.event()
 
+        # Streaming state
+        self.streaming_text_chunks = []
+        self.streaming_voice = None
+        self.streaming_audio_started = False
+
     async def handle_event(self, event: Event) -> bool:
         """Handle Wyoming protocol events."""
         if Describe.is_type(event.type):
@@ -100,17 +105,46 @@ class KokoroEventHandler(AsyncEventHandler):
             _LOGGER.debug("Sent info")
             return True
 
-        if not Synthesize.is_type(event.type):
-            _LOGGER.warning("Unexpected event: %s", event)
-            return True
+        # Handle streaming TTS events (Wyoming 1.7.0+)
+        if SynthesizeStart.is_type(event.type):
+            try:
+                return await self._handle_synthesize_start(event)
+            except Exception as err:
+                await self.write_event(
+                    Error(text=str(err), code=err.__class__.__name__).event()
+                )
+                raise err
 
-        try:
-            return await self._handle_synthesize(event)
-        except Exception as err:
-            await self.write_event(
-                Error(text=str(err), code=err.__class__.__name__).event()
-            )
-            raise err
+        if SynthesizeChunk.is_type(event.type):
+            try:
+                return await self._handle_synthesize_chunk(event)
+            except Exception as err:
+                await self.write_event(
+                    Error(text=str(err), code=err.__class__.__name__).event()
+                )
+                raise err
+
+        if SynthesizeStop.is_type(event.type):
+            try:
+                return await self._handle_synthesize_stop(event)
+            except Exception as err:
+                await self.write_event(
+                    Error(text=str(err), code=err.__class__.__name__).event()
+                )
+                raise err
+
+        # Handle legacy non-streaming synthesis (backward compatibility)
+        if Synthesize.is_type(event.type):
+            try:
+                return await self._handle_synthesize(event)
+            except Exception as err:
+                await self.write_event(
+                    Error(text=str(err), code=err.__class__.__name__).event()
+                )
+                raise err
+
+        _LOGGER.warning("Unexpected event: %s", event)
+        return True
 
     """Handle text to speech synthesis request."""
 
@@ -175,6 +209,112 @@ class KokoroEventHandler(AsyncEventHandler):
 
         except Exception as e:
             _LOGGER.exception("Error synthesizing: %s", e)
+
+    async def _handle_synthesize_start(self, event: Event) -> bool:
+        """Handle start of streaming synthesis."""
+        synthesize_start = SynthesizeStart.from_event(event)
+
+        # Reset streaming state
+        self.streaming_text_chunks = []
+        self.streaming_audio_started = False
+
+        # Store voice settings
+        self.streaming_voice = "af_heart"  # default voice
+        if synthesize_start.voice:
+            self.streaming_voice = synthesize_start.voice.name
+
+        _LOGGER.debug("Started streaming synthesis with voice: %s", self.streaming_voice)
+        return True
+
+    async def _handle_synthesize_chunk(self, event: Event) -> bool:
+        """Handle streaming text chunk."""
+        synthesize_chunk = SynthesizeChunk.from_event(event)
+
+        # Accumulate text chunks
+        self.streaming_text_chunks.append(synthesize_chunk.text)
+
+        _LOGGER.debug("Received text chunk: %s", repr(synthesize_chunk.text))
+        return True
+
+    async def _handle_synthesize_stop(self, event: Event) -> bool:
+        """Handle end of streaming synthesis and process accumulated text."""
+        try:
+            # Combine all text chunks
+            full_text = "".join(self.streaming_text_chunks)
+
+            if not full_text.strip():
+                # No text to synthesize
+                await self.write_event(SynthesizeStopped().event())
+                return True
+
+            _LOGGER.debug("Processing streaming synthesis with full text: %s", repr(full_text))
+
+            # Split into sentences for streaming
+            sentences = split_into_sentences(full_text)
+
+            total_bytes = 0
+            for i, sentence in enumerate(sentences):
+                # Create audio stream
+                stream = self.kokoro.create_stream(
+                    sentence,
+                    voice=self.streaming_voice,
+                    speed=1.0,
+                    lang="en-us" if self.streaming_voice.startswith("a") else "en-gb"
+                )
+
+                if i == 0 and not self.streaming_audio_started:
+                    # Send audio start on first sentence
+                    await self.write_event(
+                        AudioStart(
+                            rate=kokoro_onnx.config.SAMPLE_RATE,
+                            width=2,
+                            channels=1,
+                        ).event()
+                    )
+                    self.streaming_audio_started = True
+
+                # Process each chunk from the stream
+                async for audio, sample_rate in stream:
+                    # Convert float32 to int16
+                    audio_int16 = (audio * 32767).astype(np.int16)
+                    audio_bytes = audio_int16.tobytes()
+
+                    total_bytes += len(audio_bytes)
+
+                    # Send audio chunk
+                    await self.write_event(
+                        AudioChunk(
+                            audio=audio_bytes,
+                            rate=kokoro_onnx.config.SAMPLE_RATE,
+                            width=2,
+                            channels=1,
+                        ).event()
+                    )
+
+            # Send audio stop
+            if self.streaming_audio_started:
+                await self.write_event(AudioStop().event())
+
+            # Send synthesize stopped confirmation
+            await self.write_event(SynthesizeStopped().event())
+
+            _LOGGER.debug('Streaming synthesis completed: %d bytes from %d chunks',
+                          total_bytes, len(self.streaming_text_chunks))
+
+            # Reset streaming state
+            self.streaming_text_chunks = []
+            self.streaming_voice = None
+            self.streaming_audio_started = False
+
+            return True
+
+        except Exception as e:
+            _LOGGER.exception("Error in streaming synthesis: %s", e)
+            # Reset state on error
+            self.streaming_text_chunks = []
+            self.streaming_voice = None
+            self.streaming_audio_started = False
+            raise
 
 
 async def main():
