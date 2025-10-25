@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.5.2...kokoro-wyoming-v0.6.0) (2025-10-25)
+
+
+### Features
+
+* add speed adjustment option ([4bf6763](https://github.com/mikesmitty/wyoming-helm/commit/4bf6763fadb9956574afc448b850d83114c2d7ef))
+* add streaming support ([21f25d6](https://github.com/mikesmitty/wyoming-helm/commit/21f25d611f05d7ccd58c0b88b05a2e3dc5b9f2e8))
+* Update dependency onnxruntime-openvino to v1.23.0 ([#14](https://github.com/mikesmitty/wyoming-helm/issues/14)) ([9095026](https://github.com/mikesmitty/wyoming-helm/commit/90950265339003aa9deccc4d901381c896bd3cd2))
+* Update dependency wyoming to v1.8.0 ([#15](https://github.com/mikesmitty/wyoming-helm/issues/15)) ([a10d853](https://github.com/mikesmitty/wyoming-helm/commit/a10d853749dae7d8dbaee90f2353f87c5bae083f))
+
+
+### Bug Fixes
+
+* Update dependency kokoro-onnx to v0.4.9 ([#13](https://github.com/mikesmitty/wyoming-helm/issues/13)) ([9b3be25](https://github.com/mikesmitty/wyoming-helm/commit/9b3be2586430749d7864bb3f2b114806a168b952))
+
 ## [0.5.2](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.5.1...kokoro-wyoming-v0.5.2) (2025-10-25)
 
 
