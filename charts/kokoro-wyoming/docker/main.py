@@ -85,18 +85,62 @@ def get_model_voices(model: Kokoro) -> list[TtsVoice]:
 
 class KokoroEventHandler(AsyncEventHandler):
     def __init__(self, wyoming_info: Info, kokoro_instance,
+                 cli_args,
                  *args,
                  **kwargs):
         super().__init__(*args, **kwargs)
 
         self.kokoro = kokoro_instance
+        self.cli_args = cli_args
         self.args = args
         self.wyoming_info_event = wyoming_info.event()
 
         # Streaming state
         self.streaming_text_chunks = []
         self.streaming_voice = None
+        self.streaming_speed = None
+        self.streaming_lang = None
         self.streaming_audio_started = False
+
+    def _parse_voice_settings(self, voice_obj):
+        """
+        Parse voice settings from Wyoming voice object.
+
+        Returns:
+            tuple: (voice_name, speed, lang)
+
+        Speed can be specified via speaker parameter, e.g.:
+        - speaker="speed_1.5" -> 1.5x speed
+        - speaker="1.2" -> 1.2x speed
+        - speaker=None -> default speed from CLI args
+        """
+        voice_name = "af_heart"  # default voice
+        speed = self.cli_args.speed if hasattr(self.cli_args, 'speed') else 1.0
+
+        if voice_obj:
+            if voice_obj.name:
+                voice_name = voice_obj.name
+
+            # Check if speaker parameter contains speed override
+            if hasattr(voice_obj, 'speaker') and voice_obj.speaker:
+                speaker = voice_obj.speaker
+                # Try to extract speed from speaker parameter
+                # Supports formats: "speed_1.5", "1.5", "speed:1.5"
+                try:
+                    if speaker.startswith("speed_") or speaker.startswith("speed:"):
+                        speed_str = speaker.split("_")[-1].split(":")[-1]
+                        speed = float(speed_str)
+                    else:
+                        # Try direct float parsing
+                        speed = float(speaker)
+                except (ValueError, AttributeError):
+                    # If parsing fails, use default speed
+                    pass
+
+        # Determine language from voice name
+        lang = "en-us" if voice_name.startswith("a") else "en-gb"
+
+        return voice_name, speed, lang
 
     async def handle_event(self, event: Event) -> bool:
         """Handle Wyoming protocol events."""
@@ -152,22 +196,20 @@ class KokoroEventHandler(AsyncEventHandler):
         try:
             synthesize = Synthesize.from_event(event)
 
-            # Get voice settings
-            voice_name = "af_heart"  # default voice
-            if synthesize.voice:
-                voice_name = synthesize.voice.name
+            # Get voice settings with speed adjustment
+            voice_name, speed, lang = self._parse_voice_settings(synthesize.voice)
 
             sentences = split_into_sentences(synthesize.text)
 
             i = 0
             t_bytes = 0
             for sentence in sentences:
-                # Create audio stream
+                # Create audio stream with adjustable speed
                 stream = self.kokoro.create_stream(
                     sentence,
                     voice=voice_name,
-                    speed=1.0,
-                    lang="en-us" if voice_name.startswith("a") else "en-gb"
+                    speed=speed,
+                    lang=lang
                 )
 
                 if i == 0:
@@ -218,12 +260,14 @@ class KokoroEventHandler(AsyncEventHandler):
         self.streaming_text_chunks = []
         self.streaming_audio_started = False
 
-        # Store voice settings
-        self.streaming_voice = "af_heart"  # default voice
-        if synthesize_start.voice:
-            self.streaming_voice = synthesize_start.voice.name
+        # Parse and store voice settings with speed
+        voice_name, speed, lang = self._parse_voice_settings(synthesize_start.voice)
+        self.streaming_voice = voice_name
+        self.streaming_speed = speed
+        self.streaming_lang = lang
 
-        _LOGGER.debug("Started streaming synthesis with voice: %s", self.streaming_voice)
+        _LOGGER.debug("Started streaming synthesis with voice: %s, speed: %.2f",
+                     self.streaming_voice, self.streaming_speed)
         return True
 
     async def _handle_synthesize_chunk(self, event: Event) -> bool:
@@ -254,12 +298,12 @@ class KokoroEventHandler(AsyncEventHandler):
 
             total_bytes = 0
             for i, sentence in enumerate(sentences):
-                # Create audio stream
+                # Create audio stream with stored speed settings
                 stream = self.kokoro.create_stream(
                     sentence,
                     voice=self.streaming_voice,
-                    speed=1.0,
-                    lang="en-us" if self.streaming_voice.startswith("a") else "en-gb"
+                    speed=self.streaming_speed,
+                    lang=self.streaming_lang
                 )
 
                 if i == 0 and not self.streaming_audio_started:
@@ -304,6 +348,8 @@ class KokoroEventHandler(AsyncEventHandler):
             # Reset streaming state
             self.streaming_text_chunks = []
             self.streaming_voice = None
+            self.streaming_speed = None
+            self.streaming_lang = None
             self.streaming_audio_started = False
 
             return True
@@ -313,6 +359,8 @@ class KokoroEventHandler(AsyncEventHandler):
             # Reset state on error
             self.streaming_text_chunks = []
             self.streaming_voice = None
+            self.streaming_speed = None
+            self.streaming_lang = None
             self.streaming_audio_started = False
             raise
 
@@ -340,6 +388,12 @@ async def main():
         "--debug",
         action="store_true",
         help="Enable debug logging",
+    )
+    parser.add_argument(
+        "--speed",
+        type=float,
+        default=1.0,
+        help="Default speech speed (0.5-2.0, default: 1.0). Can be overridden per-request via voice.speaker parameter (e.g., 'speed_1.5')",
     )
     args = parser.parse_args()
 
@@ -371,8 +425,8 @@ async def main():
     for s in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(s, lambda: asyncio.create_task(server.stop()))
 
-    # Start server with kokoro instance
-    await server.run(partial(KokoroEventHandler, wyoming_info, kokoro_instance))
+    # Start server with kokoro instance and CLI args
+    await server.run(partial(KokoroEventHandler, wyoming_info, kokoro_instance, args))
 
 
 if __name__ == "__main__":
