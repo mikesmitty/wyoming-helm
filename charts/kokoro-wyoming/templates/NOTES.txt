@@ -30,13 +30,7 @@ Service endpoint:
 Configuration:
   - ONNX Provider: {{ .Values.onnxProvider }}
   - Debug: {{ .Values.debug }}
-
-{{- if .Values.persistence.enabled }}
-Model cache is stored in PVC: {{ .Values.persistence.existingClaim | default (printf "%s-cache" (include "kokoro-wyoming.fullname" .)) }}
-{{- else }}
-WARNING: Persistence is disabled. Models may be re-downloaded on pod restart.
-         Enable persistence for faster startup times.
-{{- end }}
+  - Model: Built into the container image
 
 For Home Assistant integration, add to your configuration.yaml:
 

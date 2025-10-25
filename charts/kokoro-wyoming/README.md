@@ -11,14 +11,13 @@ This chart is optimized for **Home Assistant voice assistant** deployments with 
 
 The chart deploys:
 - **Kokoro Wyoming** (`ghcr.io/mikesmitty/kokoro-wyoming-tts`) - Kokoro TTS with Wyoming protocol support
-- **Persistent Storage** - Optional PVC for caching models (recommended)
+- **Built-in Model** - The Kokoro v1.0 model is included in the container image
 - **Health Checks** - Liveness and readiness probes for reliability
 
 ## Prerequisites
 
 - Kubernetes 1.19+
 - Helm 3.0+
-- Persistent storage (recommended for model caching)
 - (Optional) Intel GPU with device plugin for GPU acceleration
 
 ## Installation
@@ -54,11 +53,6 @@ Create a values file for your environment (e.g., `production.yaml`, `homeassista
 ```yaml
 # Enable Intel GPU acceleration
 onnxProvider: OpenVINOExecutionProvider
-
-# Enable persistent storage (recommended)
-persistence:
-  enabled: true
-  size: 2Gi
 
 # Resource limits for Intel GPU
 resources:
@@ -104,11 +98,6 @@ The following table lists the configurable parameters:
 | `debug` | Enable debug logging | `false` |
 | `extraArgs` | Additional command line arguments | `[]` |
 | `resources` | Resource limits and requests | `{}` |
-| `persistence.enabled` | Enable persistent storage | `true` |
-| `persistence.size` | PVC size | `2Gi` |
-| `persistence.storageClass` | Storage class | `""` |
-| `persistence.accessMode` | Access mode | `ReadWriteOnce` |
-| `persistence.existingClaim` | Use existing PVC | `""` |
 | `livenessProbe.enabled` | Enable liveness probe | `true` |
 | `readinessProbe.enabled` | Enable readiness probe | `true` |
 | `nodeSelector` | Node selector | `{}` |
@@ -240,11 +229,6 @@ resources:
 # Target nodes with Intel GPUs
 nodeSelector:
   intel.feature.node.kubernetes.io/gpu: "true"
-
-# Cache models for quick startup
-persistence:
-  enabled: true
-  size: 2Gi
 ```
 
 ### Debug Logging
@@ -262,11 +246,6 @@ Full configuration optimized for Home Assistant with Intel GPU:
 ```yaml
 # Intel GPU acceleration
 onnxProvider: OpenVINOExecutionProvider
-
-# Enable model caching
-persistence:
-  enabled: true
-  size: 2Gi
 
 # Intel GPU resources
 resources:
@@ -297,12 +276,6 @@ service:
 kubectl logs -l app.kubernetes.io/name=kokoro-wyoming
 ```
 
-### Model cache issues
-
-If models are being re-downloaded on every restart:
-- Ensure `persistence.enabled: true` in your values
-- Check PVC is bound: `kubectl get pvc`
-
 ### Service not responding
 
 Check pod status:
@@ -329,12 +302,6 @@ To uninstall/delete the deployment:
 
 ```bash
 helm uninstall kokoro
-```
-
-To also delete the PVC:
-
-```bash
-kubectl delete pvc kokoro-kokoro-wyoming-cache
 ```
 
 ## Upgrading

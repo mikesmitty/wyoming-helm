@@ -53,15 +53,6 @@ securityContext:
   seccompProfile:
     type: RuntimeDefault
 
-# Persistent storage for model cache (optional but recommended)
-persistence:
-  enabled: true
-  storageClass: ""
-  accessMode: ReadWriteOnce
-  size: 2Gi
-  # Use an existing claim
-  existingClaim: ""
-
 # Node selector for pod assignment
 nodeSelector: {}
 # Example for Intel GPU nodes:
@@ -75,9 +66,7 @@ tolerations: []
 affinity: {}
 
 # Pod security context
-podSecurityContext:
-  fsGroup: 1000
-  fsGroupChangePolicy: "OnRootMismatch"
+podSecurityContext: {}
 
 # Image pull secrets
 imagePullSecrets: []
