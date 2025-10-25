@@ -14,7 +14,7 @@ service:
 # Available models: tiny, base, small, medium, large, large-v2, large-v3, large-v3-turbo
 # Quantized (faster): tiny-int8, base-int8, small-int8, medium-int8, distil-large-v3
 # HuggingFace models: Systran/faster-distil-whisper-small.en, Systran/faster-whisper-large-v3
-model: base
+model: distil-small.en
 
 # Language code (e.g., en, de, fr, es, etc.) - leave empty for auto-detection
 language: ""
@@ -62,16 +62,17 @@ resources: {}
   #   memory: 2Gi
 
 # Security context for the container
-securityContext:
-  runAsUser: 1000
-  runAsGroup: 1000
-  runAsNonRoot: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-  seccompProfile:
-    type: RuntimeDefault
+# Note: image doesn't function properly rootless at this time
+securityContext: {}
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # seccompProfile:
+  #   type: RuntimeDefault
 
 # Persistent storage for models (recommended to avoid re-downloading on restart)
 persistence:
@@ -92,16 +93,16 @@ tolerations: []
 affinity: {}
 
 # Pod security context
-podSecurityContext:
-  fsGroup: 1000
-  fsGroupChangePolicy: "OnRootMismatch"
+podSecurityContext: {}
+  # fsGroup: 1000
+  # fsGroupChangePolicy: "OnRootMismatch"
 
 # Image pull secrets
 imagePullSecrets: []
 
 # Liveness probe configuration
 livenessProbe:
-  enabled: true
+  enabled: false
   tcpSocket:
     port: wyoming
   initialDelaySeconds: 30
