@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.5.1...kokoro-wyoming-v0.5.2) (2025-10-25)
+
+
+### Bug Fixes
+
+* remove unused persistent storage ([ffd5f00](https://github.com/mikesmitty/wyoming-helm/commit/ffd5f00f0ab0815d37345e27894d037961515421))
+
 ## [0.5.1](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.5.0...kokoro-wyoming-v0.5.1) (2025-10-24)
 
 
