@@ -21,6 +21,10 @@
           "path": "docker/Dockerfile"
         },
         {
+          "type": "generic",
+          "path": "docker/main.py"
+        },
+        {
           "type": "yaml",
           "path": "Chart.yaml",
           "jsonpath": "$.appVersion"

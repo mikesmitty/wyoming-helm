@@ -25,7 +25,7 @@ from wyoming.event import Event
 import re
 
 _LOGGER = log.getChild(__name__)
-VERSION = "0.1"
+VERSION = "0.6.0" # x-release-please-version
 
 
 def split_into_sentences(text: str) -> list[str]:
@@ -413,7 +413,7 @@ async def main():
             ),
             installed=True,
             voices=sorted(wyoming_voices, key=lambda v: v.name),
-            version="1.5.0"
+            version=VERSION,
         )]
     )
 
