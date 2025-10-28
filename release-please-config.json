@@ -32,7 +32,6 @@
       ]
     },
     "charts/ollama-intel": {
-      "release-as": "0.1.0",
       "release-type": "helm",
       "package-name": "ollama-intel",
       "extra-files": [
