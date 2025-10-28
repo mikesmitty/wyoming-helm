@@ -5,11 +5,12 @@
     "customManagers:dockerfileVersions",
     "customManagers:helmChartYamlAppVersions"
   ],
-  "regexManagers": [
+  "customManagers": [
     {
+      "customType": "regex",
       "description": "Update IPEX-LLM version in ollama-intel values.yaml",
-      "fileMatch": [
-        "^charts/ollama-intel/values\\.yaml$"
+      "managerFilePatterns": [
+        "/^charts/ollama-intel/values\\.yaml$/"
       ],
       "matchStrings": [
         "IPEXLLM_RELEASE_REPO: \"(?<depName>.*?)\"\\n.*?IPEXLLM_RELEASE_VERSON: \"(?<currentValue>v[0-9.]+)\"\\n.*?IPEXLLM_PORTABLE_ZIP_FILENAME: \"ollama-ipex-llm-(?<version>[0-9.]+)-ubuntu\\.tgz\""
