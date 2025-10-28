@@ -37,7 +37,7 @@ ollama:
     storageClass: ""
     accessMode: ReadWriteOnce
     size: 50Gi # Ollama models can be large
-    mountPath: /root/.ollama
+    mountPath: /app/.ollama
     existingClaim: ""
 
   # Resource limits and requests
@@ -58,8 +58,8 @@ ollama:
 
   # Security context for the container
   securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
+    runAsUser: 1001
+    runAsGroup: 1001
     runAsNonRoot: true
     allowPrivilegeEscalation: false
     capabilities:
