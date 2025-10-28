@@ -27,12 +27,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Extract chart version
-        id: chart-version
+      - name: Extract appVersion
+        id: app-version
         run: |
-          VERSION=$(awk '/^version:/ {print $2}' charts/ollama-intel/Chart.yaml)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Chart version: ${VERSION}"
+          APP_VERSION=$(awk '/^appVersion:/ {print $2}' charts/ollama-intel/Chart.yaml | tr -d '"')
+          echo "version=${APP_VERSION}" >> $GITHUB_OUTPUT
+          echo "App version: ${APP_VERSION}"
 
       - name: Extract build arguments from values.yaml
         id: build-args
@@ -66,8 +66,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ steps.chart-version.outputs.version }}
-            type=raw,value=${{ steps.chart-version.outputs.version }}-{{date 'YYYYMMDD'}}
+            type=raw,value=${{ steps.app-version.outputs.version }}
+            type=raw,value=${{ steps.app-version.outputs.version }}-{{date 'YYYYMMDD'}}
             type=sha,prefix={{branch}}-
 
       - name: Build and push Docker image
@@ -88,6 +88,6 @@ jobs:
       - name: Output image details
         run: |
           echo "Image built and pushed successfully"
-          echo "Chart version: ${{ steps.chart-version.outputs.version }}"
+          echo "App version: ${{ steps.app-version.outputs.version }}"
           echo "IPEX-LLM version: ${{ steps.build-args.outputs.ipexllm_version }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"

@@ -4,7 +4,7 @@ ollama:
 
   image:
     repository: ghcr.io/mikesmitty/ollama-intel-gpu
-    tag: "latest"
+    tag: ""
     pullPolicy: IfNotPresent
 
   # Build arguments for the Dockerfile

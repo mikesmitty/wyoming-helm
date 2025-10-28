@@ -60,9 +60,20 @@ kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel
 ## Docker Image
 
 The chart uses a pre-built Docker image from GitHub Container Registry:
-- `ghcr.io/mikesmitty/ollama-intel-gpu:latest`
+- `ghcr.io/mikesmitty/ollama-intel-gpu`
 
 The image is automatically built from [charts/ollama-intel/docker/Dockerfile](charts/ollama-intel/docker/Dockerfile) via GitHub Actions.
+
+### Image Versioning
+
+By default, the chart uses the `appVersion` from [Chart.yaml](charts/ollama-intel/Chart.yaml) as the image tag. The current appVersion is "2.2.0", so it will use `ghcr.io/mikesmitty/ollama-intel-gpu:2.2.0`.
+
+You can override the tag in `values.yaml` if needed:
+```yaml
+ollama:
+  image:
+    tag: "2.2.0"  # Use a specific version
+```
 
 ### Building Your Own Image (Optional)
 
@@ -119,8 +130,8 @@ The following table lists the configurable parameters and their default values.
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `ollama.replicaCount` | Number of Ollama replicas | `1` |
-| `ollama.image.repository` | Ollama image repository | `""` (must be set) |
-| `ollama.image.tag` | Ollama image tag | `"latest"` |
+| `ollama.image.repository` | Ollama image repository | `ghcr.io/mikesmitty/ollama-intel-gpu` |
+| `ollama.image.tag` | Ollama image tag (empty = use appVersion) | `""` |
 | `ollama.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `ollama.service.type` | Kubernetes service type | `ClusterIP` |
 | `ollama.service.port` | Ollama service port | `11434` |
