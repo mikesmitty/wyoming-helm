@@ -2,7 +2,7 @@ FROM ghcr.io/astral-sh/uv:0.9.5-python3.12-trixie-slim
 
 # Version comment to trigger a rebuild when updated
 # x-release-please-start-version
-# version 0.6.0
+# version 0.6.1
 # x-release-please-end
 
 ENV PYTHONPATH=/app
