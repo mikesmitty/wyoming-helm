@@ -1,0 +1,336 @@
+# Ollama Intel GPU Helm Chart
+
+This Helm chart deploys [Ollama](https://ollama.ai/) with Intel GPU support using [IPEX-LLM](https://github.com/intel-analytics/ipex-llm) and [Open WebUI](https://github.com/open-webui/open-webui) on Kubernetes.
+
+## Features
+
+- Ollama server optimized for Intel GPUs with IPEX-LLM
+- Open WebUI for easy interaction with Ollama models
+- Persistent storage for models and WebUI data
+- Intel GPU support via device plugin (no privileged containers required)
+- Configurable resource limits and requests
+- Optional Ingress support for external access
+- Health checks (liveness and readiness probes)
+- Secure by default with non-root containers
+
+## Prerequisites
+
+- Kubernetes 1.19+
+- Helm 3.0+
+- Intel GPU available on Kubernetes nodes
+- Intel GPU drivers installed on nodes
+- [Intel GPU Device Plugin](https://github.com/intel/intel-device-plugins-for-kubernetes) installed on the cluster
+- [Node Feature Discovery (NFD)](https://kubernetes-sigs.github.io/node-feature-discovery/) operator (optional, for automatic node labeling)
+- PersistentVolume provisioner (if using persistent storage)
+
+## Intel GPU Setup
+
+### Install Intel GPU Device Plugin
+
+The Intel GPU Device Plugin exposes GPU devices to Kubernetes without requiring privileged containers:
+
+```bash
+# Install using Kustomize
+kubectl apply -k https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/gpu_plugin/overlays/nfd_labeled_nodes
+```
+
+Or with Helm:
+
+```bash
+helm repo add intel https://intel.github.io/helm-charts
+helm install intel-gpu-plugin intel/intel-device-plugins-gpu
+```
+
+### Install Node Feature Discovery (Optional)
+
+NFD automatically labels nodes with Intel GPU capabilities:
+
+```bash
+helm repo add nfd https://kubernetes-sigs.github.io/node-feature-discovery/charts
+helm install nfd nfd/node-feature-discovery
+```
+
+After installation, verify GPU resources are available:
+
+```bash
+# Check for GPU resources on nodes
+kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel.com/i915" != null or ."gpu.intel.com/xe" != null)'
+```
+
+## Docker Image
+
+The chart uses a pre-built Docker image from GitHub Container Registry:
+- `ghcr.io/mikesmitty/ollama-intel-gpu:latest`
+
+The image is automatically built from [charts/ollama-intel/docker/Dockerfile](charts/ollama-intel/docker/Dockerfile) via GitHub Actions.
+
+### Building Your Own Image (Optional)
+
+If you want to build and use your own image:
+
+```bash
+cd charts/ollama-intel/docker
+docker build \
+  --build-arg IPEXLLM_RELEASE_REPO=ipex-llm/ipex-llm \
+  --build-arg IPEXLLM_RELEASE_VERSION=v2.2.0 \
+  --build-arg IPEXLLM_PORTABLE_ZIP_FILENAME=ollama-ipex-llm-2.2.0-ubuntu.tgz \
+  -t your-registry/ollama-intel:2.2.0 .
+
+docker push your-registry/ollama-intel:2.2.0
+```
+
+Then update `values.yaml` to use your image:
+
+```yaml
+ollama:
+  image:
+    repository: your-registry/ollama-intel
+    tag: "2.2.0"
+```
+
+## Installation
+
+### Add the repository (if published to a Helm repo)
+
+```bash
+helm repo add wyoming-helm https://your-repo-url
+helm repo update
+```
+
+### Install the chart
+
+```bash
+# Install with default values
+helm install my-ollama wyoming-helm/ollama-intel
+
+# Install with custom values
+helm install my-ollama wyoming-helm/ollama-intel -f custom-values.yaml
+
+# Install from local chart directory
+helm install my-ollama ./charts/ollama-intel
+```
+
+## Configuration
+
+The following table lists the configurable parameters and their default values.
+
+### Ollama Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `ollama.replicaCount` | Number of Ollama replicas | `1` |
+| `ollama.image.repository` | Ollama image repository | `""` (must be set) |
+| `ollama.image.tag` | Ollama image tag | `"latest"` |
+| `ollama.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `ollama.service.type` | Kubernetes service type | `ClusterIP` |
+| `ollama.service.port` | Ollama service port | `11434` |
+| `ollama.env.ONEAPI_DEVICE_SELECTOR` | OneAPI device selector | `"level_zero:0"` |
+| `ollama.env.IPEX_LLM_NUM_CTX` | IPEX-LLM context size | `"16384"` |
+| `ollama.persistence.enabled` | Enable persistent storage | `true` |
+| `ollama.persistence.size` | Storage size | `50Gi` |
+| `ollama.persistence.storageClass` | Storage class | `""` |
+| `ollama.persistence.accessMode` | Access mode | `ReadWriteOnce` |
+| `ollama.resources` | CPU/Memory/GPU resource requests/limits | `{}` |
+| `ollama.securityContext` | Container security context | See values.yaml |
+
+### WebUI Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `webui.enabled` | Enable Open WebUI | `true` |
+| `webui.replicaCount` | Number of WebUI replicas | `1` |
+| `webui.image.repository` | WebUI image repository | `ghcr.io/open-webui/open-webui` |
+| `webui.image.tag` | WebUI image tag | `latest` |
+| `webui.service.type` | Kubernetes service type | `ClusterIP` |
+| `webui.service.port` | WebUI service port | `8080` |
+| `webui.service.externalPort` | External port for port-forward | `3000` |
+| `webui.persistence.enabled` | Enable persistent storage | `true` |
+| `webui.persistence.size` | Storage size | `2Gi` |
+| `webui.ingress.enabled` | Enable Ingress | `false` |
+| `webui.ingress.className` | Ingress class name | `""` |
+| `webui.ingress.hosts` | Ingress hosts | `[{host: ollama-webui.local, paths: [{path: /, pathType: Prefix}]}]` |
+
+### Common Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `nodeSelector` | Node labels for pod assignment | `{}` |
+| `tolerations` | Tolerations for pod assignment | `[]` |
+| `affinity` | Affinity rules for pod assignment | `{}` |
+| `imagePullSecrets` | Image pull secrets | `[]` |
+
+## Examples
+
+### Basic Installation
+
+```bash
+helm install my-ollama ./charts/ollama-intel
+```
+
+### With Intel GPU Acceleration
+
+```yaml
+# values.yaml
+ollama:
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+      gpu.intel.com/i915: 1  # For older Intel GPUs (Gen 9-12)
+      # gpu.intel.com/xe: 1  # For newer Intel Xe GPUs (Arc, Flex, Max)
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+      gpu.intel.com/i915: 1
+      # gpu.intel.com/xe: 1
+
+nodeSelector:
+  intel.feature.node.kubernetes.io/gpu: "true"
+```
+
+```bash
+helm install my-ollama ./charts/ollama-intel -f values.yaml
+```
+
+### With Ingress Enabled
+
+```yaml
+# values.yaml
+webui:
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: ollama.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: ollama-tls
+        hosts:
+          - ollama.example.com
+```
+
+
+## Usage
+
+### Accessing Open WebUI
+
+#### Port Forward (default)
+
+```bash
+kubectl port-forward service/my-ollama-webui 3000:8080
+```
+
+Then open http://localhost:3000 in your browser.
+
+#### Ingress
+
+If you enabled Ingress, access the WebUI at the configured hostname.
+
+### Using Ollama CLI
+
+Pull a model:
+
+```bash
+kubectl exec -it deployment/my-ollama-ollama -- ollama pull llama2
+```
+
+Run a model:
+
+```bash
+kubectl exec -it deployment/my-ollama-ollama -- ollama run llama2 "Hello, how are you?"
+```
+
+List models:
+
+```bash
+kubectl exec -it deployment/my-ollama-ollama -- ollama list
+```
+
+### API Access
+
+Access the Ollama API from within the cluster:
+
+```bash
+curl http://my-ollama-ollama:11434/api/generate -d '{
+  "model": "llama2",
+  "prompt": "Why is the sky blue?"
+}'
+```
+
+## Upgrading
+
+```bash
+helm upgrade my-ollama ./charts/ollama-intel -f values.yaml
+```
+
+## Uninstalling
+
+```bash
+helm uninstall my-ollama
+```
+
+Note: This will not delete the PersistentVolumeClaims. To delete them:
+
+```bash
+kubectl delete pvc -l app.kubernetes.io/instance=my-ollama
+```
+
+## Troubleshooting
+
+### GPU Not Detected
+
+Ensure:
+1. Intel GPU Device Plugin is installed and running
+2. Intel GPU drivers are installed on the nodes
+3. GPU resources are requested in `ollama.resources` (`gpu.intel.com/i915` or `gpu.intel.com/xe`)
+4. Node selector/affinity is correctly configured to schedule on GPU nodes (if using NFD)
+
+Check GPU resources available on nodes:
+
+```bash
+kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel.com/i915" != null or ."gpu.intel.com/xe" != null)'
+```
+
+Verify GPU device plugin is running:
+
+```bash
+kubectl get pods -n kube-system | grep gpu-plugin
+```
+
+Check if your pod has GPU allocated:
+
+```bash
+kubectl describe pod -l app.kubernetes.io/component=ollama | grep -A 5 "Limits:"
+```
+
+### Models Not Persisting
+
+Ensure `ollama.persistence.enabled` is set to `true` and that your cluster has a PersistentVolume provisioner configured.
+
+### WebUI Cannot Connect to Ollama
+
+Check that the Ollama service is running:
+
+```bash
+kubectl get svc my-ollama-ollama
+kubectl logs deployment/my-ollama-ollama
+```
+
+Verify the WebUI environment variable:
+
+```bash
+kubectl exec deployment/my-ollama-webui -- env | grep OLLAMA_BASE_URL
+```
+
+## Source
+
+Based on the docker-compose configuration from:
+https://github.com/charlescng/ollama-intel-gpu
+
+## License
+
+This Helm chart follows the same license as the underlying projects.

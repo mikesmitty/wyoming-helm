@@ -1,0 +1,208 @@
+# Ollama Intel GPU service configuration
+ollama:
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/mikesmitty/ollama-intel-gpu
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  # Build arguments for the Dockerfile
+  buildArgs:
+    IPEXLLM_RELEASE_REPO: "ipex-llm/ipex-llm"
+    IPEXLLM_RELEASE_VERSON: "v2.2.0"
+    IPEXLLM_PORTABLE_ZIP_FILENAME: "ollama-ipex-llm-2.2.0-ubuntu.tgz"
+
+  service:
+    type: ClusterIP
+    port: 11434
+
+  # Environment variables for Intel GPU optimization
+  env:
+    # OneAPI device selector - use level_zero:0 for first Intel GPU
+    ONEAPI_DEVICE_SELECTOR: "level_zero:0"
+    # IPEX-LLM context size
+    IPEX_LLM_NUM_CTX: "16384"
+
+  # Additional environment variables
+  extraEnv: []
+  # Example:
+  # extraEnv:
+  #   - name: CUSTOM_VAR
+  #     value: "custom_value"
+
+  # Persistent storage for Ollama models
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 50Gi # Ollama models can be large
+    mountPath: /root/.ollama
+    existingClaim: ""
+
+  # Resource limits and requests
+  # For Intel GPU acceleration, add gpu.intel.com/i915 or gpu.intel.com/xe resource
+  # This requires the Intel GPU Device Plugin to be installed on your cluster
+  # See: https://github.com/intel/intel-device-plugins-for-kubernetes
+  resources: {}
+    # limits:
+    #   cpu: 4000m
+    #   memory: 16Gi
+    #   gpu.intel.com/i915: 1
+    #   # gpu.intel.com/xe: 1
+    # requests:
+    #   cpu: 2000m
+    #   memory: 8Gi
+    #   gpu.intel.com/i915: 1
+    #   # gpu.intel.com/xe: 1
+
+  # Security context for the container
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Liveness probe configuration
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: ollama
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  # Readiness probe configuration
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: ollama
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Open WebUI configuration
+webui:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/open-webui/open-webui
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8080
+    # External port mapping (like OLLAMA_WEBUI_PORT in docker-compose)
+    # This will be used if you create an Ingress or NodePort service
+    externalPort: 3000
+
+  # Environment variables
+  env:
+    # This should point to the ollama service
+    OLLAMA_BASE_URL: 'http://{{ include "ollama-intel.fullname" . }}-ollama:11434'
+
+  # Additional environment variables
+  extraEnv: []
+
+  # Persistent storage for WebUI data
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    mountPath: /app/backend/data
+    existingClaim: ""
+
+  # Resource limits and requests
+  resources: {}
+    # limits:
+    #   cpu: 1000m
+    #   memory: 2Gi
+    # requests:
+    #   cpu: 500m
+    #   memory: 1Gi
+
+  # Security context for the container
+  securityContext:
+    runAsUser: 0 # Open WebUI may need root
+    runAsNonRoot: false
+
+  # Liveness probe configuration
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: webui
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  # Readiness probe configuration
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: webui
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Ingress configuration for external access
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: ollama-webui.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    #  - secretName: ollama-webui-tls
+    #    hosts:
+    #      - ollama-webui.local
+
+# Common configuration
+# Node selector for pod assignment
+nodeSelector: {}
+# Example: Schedule on nodes with Intel GPU (requires NFD operator)
+# nodeSelector:
+#   intel.feature.node.kubernetes.io/gpu: "true"
+
+# Tolerations for pod assignment
+tolerations: []
+  # Example:
+  # - key: "gpu"
+  #   operator: "Equal"
+  #   value: "intel"
+  #   effect: "NoSchedule"
+
+# Affinity for pod assignment
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Name overrides
+nameOverride: ""
+fullnameOverride: ""

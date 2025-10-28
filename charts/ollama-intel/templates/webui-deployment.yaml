@@ -1,0 +1,91 @@
+{{- if .Values.webui.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-webui
+  labels:
+    {{- include "ollama-intel.webui.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.webui.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ollama-intel.webui.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ollama-intel.webui.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: webui
+        image: "{{ .Values.webui.image.repository }}:{{ .Values.webui.image.tag }}"
+        imagePullPolicy: {{ .Values.webui.image.pullPolicy }}
+        ports:
+        - name: webui
+          containerPort: {{ .Values.webui.service.port }}
+          protocol: TCP
+        env:
+        - name: OLLAMA_BASE_URL
+          value: "http://{{ include "ollama-intel.fullname" . }}-ollama:{{ .Values.ollama.service.port }}"
+        {{- with .Values.webui.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.webui.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.webui.livenessProbe.httpGet.path }}
+            port: {{ .Values.webui.livenessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.webui.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.webui.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.webui.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.webui.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.webui.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.webui.readinessProbe.httpGet.path }}
+            port: {{ .Values.webui.readinessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.webui.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.webui.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.webui.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.webui.readinessProbe.failureThreshold }}
+        {{- end }}
+        {{- with .Values.webui.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.webui.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        {{- if .Values.webui.persistence.enabled }}
+        - name: webui-data
+          mountPath: {{ .Values.webui.persistence.mountPath }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.webui.persistence.enabled }}
+      - name: webui-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.webui.persistence.existingClaim | default (printf "%s-webui-data" (include "ollama-intel.fullname" .)) }}
+      {{- end }}
+{{- end }}

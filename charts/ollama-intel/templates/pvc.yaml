@@ -1,0 +1,35 @@
+{{- if and .Values.ollama.persistence.enabled (not .Values.ollama.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-ollama-data
+  labels:
+    {{- include "ollama-intel.ollama.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.ollama.persistence.accessMode }}
+  {{- if .Values.ollama.persistence.storageClass }}
+  storageClassName: {{ .Values.ollama.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.ollama.persistence.size }}
+{{- end }}
+---
+{{- if and .Values.webui.enabled .Values.webui.persistence.enabled (not .Values.webui.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-webui-data
+  labels:
+    {{- include "ollama-intel.webui.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.webui.persistence.accessMode }}
+  {{- if .Values.webui.persistence.storageClass }}
+  storageClassName: {{ .Values.webui.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.webui.persistence.size }}
+{{- end }}

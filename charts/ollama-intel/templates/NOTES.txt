@@ -1,0 +1,96 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about this release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+Ollama Intel GPU Service:
+--------------------------
+Ollama is running on port {{ .Values.ollama.service.port }}
+
+To access Ollama from within the cluster:
+  http://{{ include "ollama-intel.fullname" . }}-ollama:{{ .Values.ollama.service.port }}
+
+{{- if .Values.webui.enabled }}
+
+Open WebUI:
+-----------
+{{- if .Values.webui.ingress.enabled }}
+{{- range $host := .Values.webui.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.webui.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if eq .Values.webui.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "ollama-intel.fullname" . }}-webui)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Visit http://$NODE_IP:$NODE_PORT to use Open WebUI"
+{{- else if eq .Values.webui.service.type "LoadBalancer" }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "ollama-intel.fullname" . }}-webui'
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "ollama-intel.fullname" . }}-webui --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Visit http://$SERVICE_IP:{{ .Values.webui.service.port }} to use Open WebUI"
+{{- else if eq .Values.webui.service.type "ClusterIP" }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ include "ollama-intel.fullname" . }}-webui {{ .Values.webui.service.externalPort }}:{{ .Values.webui.service.port }}
+
+  Then visit http://127.0.0.1:{{ .Values.webui.service.externalPort }} to use Open WebUI
+{{- end }}
+{{- end }}
+
+Important Notes:
+----------------
+{{- if .Values.ollama.persistence.enabled }}
+* Persistent storage is enabled for Ollama models ({{ .Values.ollama.persistence.size }})
+{{- else }}
+* WARNING: Persistent storage is disabled. Downloaded models will be lost on pod restart!
+{{- end }}
+
+{{- if and .Values.webui.enabled .Values.webui.persistence.enabled }}
+* Persistent storage is enabled for WebUI data ({{ .Values.webui.persistence.size }})
+{{- end }}
+
+Intel GPU Acceleration:
+-----------------------
+{{- if or (hasKey .Values.ollama.resources "limits") (hasKey .Values.ollama.resources "requests") }}
+{{- $hasGpu := false }}
+{{- if .Values.ollama.resources.limits }}
+  {{- if or (hasKey .Values.ollama.resources.limits "gpu.intel.com/i915") (hasKey .Values.ollama.resources.limits "gpu.intel.com/xe") }}
+    {{- $hasGpu = true }}
+  {{- end }}
+{{- end }}
+{{- if $hasGpu }}
+* Intel GPU resources are configured in your deployment
+{{- else }}
+* GPU resources are NOT configured. For Intel GPU acceleration, add to values.yaml:
+  ollama:
+    resources:
+      limits:
+        gpu.intel.com/i915: 1  # For older Intel GPUs (Gen 9-12)
+        # gpu.intel.com/xe: 1  # For newer Intel Xe GPUs (Arc, Flex, Max)
+      requests:
+        gpu.intel.com/i915: 1
+{{- end }}
+{{- else }}
+* GPU resources are NOT configured. For Intel GPU acceleration, add to values.yaml:
+  ollama:
+    resources:
+      limits:
+        gpu.intel.com/i915: 1  # For older Intel GPUs (Gen 9-12)
+        # gpu.intel.com/xe: 1  # For newer Intel Xe GPUs (Arc, Flex, Max)
+      requests:
+        gpu.intel.com/i915: 1
+{{- end }}
+
+* Ensure Intel GPU Device Plugin is installed:
+  kubectl get pods -n kube-system | grep gpu-plugin
+
+* Verify GPU resources on nodes:
+  kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel.com/i915" != null or ."gpu.intel.com/xe" != null)'
+
+To pull and use models with Ollama:
+  kubectl exec -it deployment/{{ include "ollama-intel.fullname" . }}-ollama -- ollama pull llama2
+  kubectl exec -it deployment/{{ include "ollama-intel.fullname" . }}-ollama -- ollama run llama2

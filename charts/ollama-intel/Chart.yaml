@@ -1,0 +1,20 @@
+apiVersion: v2
+name: ollama-intel
+description: A Helm chart for Ollama with Intel GPU support and Open WebUI
+type: application
+version: 0.1.0
+appVersion: "2.2.0"
+keywords:
+  - ollama
+  - intel
+  - gpu
+  - ipex-llm
+  - llm
+  - ai
+  - open-webui
+maintainers:
+  - name: mikesmitty
+sources:
+  - https://github.com/charlescng/ollama-intel-gpu
+  - https://github.com/ollama/ollama
+  - https://github.com/open-webui/open-webui

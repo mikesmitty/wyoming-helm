@@ -1,0 +1,17 @@
+{{- if .Values.webui.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-webui
+  labels:
+    {{- include "ollama-intel.webui.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.webui.service.type }}
+  ports:
+  - port: {{ .Values.webui.service.port }}
+    targetPort: webui
+    protocol: TCP
+    name: webui
+  selector:
+    {{- include "ollama-intel.webui.selectorLabels" . | nindent 4 }}
+{{- end }}
