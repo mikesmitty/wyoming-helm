@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-0.1.0...ollama-intel-v0.1.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* update persistence path ([6991338](https://github.com/mikesmitty/wyoming-helm/commit/69913383ce78d7a225e34657a8dcdb8776bc642d))
+* update user id ([6991338](https://github.com/mikesmitty/wyoming-helm/commit/69913383ce78d7a225e34657a8dcdb8776bc642d))
+
 ## 0.1.0 (2025-10-28)
 
 
