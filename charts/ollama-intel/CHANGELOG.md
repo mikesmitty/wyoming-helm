@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.4...ollama-intel-v0.2.0) (2025-10-29)
+
+
+### Features
+
+* add llama.cpp deployment ([a38c944](https://github.com/mikesmitty/wyoming-helm/commit/a38c944123c44c1742c8c0736c0ed9ba5e45c9ef))
+
 ## [0.1.4](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.3...ollama-intel-v0.1.4) (2025-10-29)
 
 
