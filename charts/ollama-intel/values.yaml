@@ -17,6 +17,10 @@ ollama:
     ONEAPI_DEVICE_SELECTOR: "level_zero:0"
     # IPEX-LLM context size
     IPEX_LLM_NUM_CTX: "16384"
+    # Ollama bind address
+    OLLAMA_HOST: "0.0.0.0:11434"
+    # Disable keep-alive to prevent model loading issues
+    OLLAMA_KEEP_ALIVE: "-1"
 
   # Additional environment variables
   extraEnv: []

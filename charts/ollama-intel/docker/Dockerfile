@@ -32,7 +32,7 @@ RUN curl -LO https://github.com/${IPEXLLM_RELEASE_REPO}/releases/download/${IPEX
     tar xvf ${IPEXLLM_PORTABLE_ZIP_FILENAME} --strip-components=1 -C ./ && \
     rm ${IPEXLLM_PORTABLE_ZIP_FILENAME}
 
-# OLLAMA_HOST is hardcoded to the local interface which stops other containers from connecting
+# OLLAMA_HOST is hardcoded to localhost in the startup script in 2.3.0-nightly
 RUN sed -i "s/export OLLAMA_HOST='127.0.0.1:11434'/export OLLAMA_HOST='0.0.0.0:11434'/" start-ollama.sh
 # Works around an intermittent model loading failure with the Arc B580
 RUN sed -i "s/export OLLAMA_KEEP_ALIVE=10m/export OLLAMA_KEEP_ALIVE=-1/" start-ollama.sh
