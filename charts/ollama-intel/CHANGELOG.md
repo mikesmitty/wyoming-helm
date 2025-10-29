@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.3...ollama-intel-v0.1.4) (2025-10-29)
+
+
+### Bug Fixes
+
+* add ollama bind port config and timeout ([79d5a56](https://github.com/mikesmitty/wyoming-helm/commit/79d5a564d7232a28071219f4a546d932bfd2d1a4))
+
 ## [0.1.3](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.2...ollama-intel-v0.1.3) (2025-10-29)
 
 
