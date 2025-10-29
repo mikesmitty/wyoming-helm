@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.1...ollama-intel-v0.1.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* specify open-webui version ([2f3748f](https://github.com/mikesmitty/wyoming-helm/commit/2f3748f4bdb4cfd2b693481a821cac421fcdc084))
+* use ipex-llm version for ollama-intel-gpu tag ([cbed911](https://github.com/mikesmitty/wyoming-helm/commit/cbed9110a3de062ae8bc25108b1796cb2dd9d0e0))
+
 ## [0.1.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-0.1.0...ollama-intel-v0.1.1) (2025-10-28)
 
 
