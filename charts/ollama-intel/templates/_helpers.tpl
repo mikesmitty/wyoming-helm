@@ -93,3 +93,26 @@ Create the name of the webui service
 {{- define "ollama-intel.webui.serviceName" -}}
 {{ include "ollama-intel.fullname" . }}-webui
 {{- end }}
+
+{{/*
+Llama.cpp component labels
+*/}}
+{{- define "ollama-intel.llamacpp.labels" -}}
+{{ include "ollama-intel.labels" . }}
+app.kubernetes.io/component: llamacpp
+{{- end }}
+
+{{/*
+Llama.cpp selector labels
+*/}}
+{{- define "ollama-intel.llamacpp.selectorLabels" -}}
+{{ include "ollama-intel.selectorLabels" . }}
+app.kubernetes.io/component: llamacpp
+{{- end }}
+
+{{/*
+Create the name of the llamacpp service
+*/}}
+{{- define "ollama-intel.llamacpp.serviceName" -}}
+{{ include "ollama-intel.fullname" . }}-llamacpp
+{{- end }}

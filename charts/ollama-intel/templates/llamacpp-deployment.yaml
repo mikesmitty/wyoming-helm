@@ -1,0 +1,144 @@
+{{- if .Values.llamacpp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-llamacpp
+  labels:
+    {{- include "ollama-intel.llamacpp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.llamacpp.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ollama-intel.llamacpp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ollama-intel.llamacpp.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.llamacpp.model.name (ne .Values.llamacpp.model.pullPolicy "Never") }}
+      initContainers:
+      - name: model-puller
+        {{- if .Values.ollama.image.repository }}
+        image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag | default .Chart.AppVersion }}"
+        {{- else }}
+        image: "ollama-intel:{{ .Values.ollama.image.tag | default .Chart.AppVersion }}"
+        {{- end }}
+        imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Check if model already exists based on pullPolicy
+          MODEL_NAME="{{ .Values.llamacpp.model.name }}"
+          PULL_POLICY="{{ .Values.llamacpp.model.pullPolicy }}"
+
+          # Extract model base name (without tag)
+          MODEL_BASE=$(echo "$MODEL_NAME" | awk -F':' '{print $1}')
+
+          # Check if model exists
+          MODEL_EXISTS=false
+          if [ -d "{{ .Values.llamacpp.persistence.mountPath }}/.ollama/models" ]; then
+            # Simple check for model directory existence
+            if ls {{ .Values.llamacpp.persistence.mountPath }}/.ollama/models/*/{{ printf "${MODEL_BASE}" }} 2>/dev/null; then
+              MODEL_EXISTS=true
+            fi
+          fi
+
+          # Pull model based on policy
+          if [ "$PULL_POLICY" = "Always" ] || { [ "$PULL_POLICY" = "IfNotPresent" ] && [ "$MODEL_EXISTS" = "false" ]; }; then
+            echo "Pulling model: $MODEL_NAME"
+            OLLAMA_MODELS={{ .Values.llamacpp.persistence.mountPath }}/.ollama ollama pull "$MODEL_NAME"
+          else
+            echo "Model already exists, skipping pull"
+          fi
+        env:
+        {{- range $key, $value := .Values.ollama.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- with .Values.llamacpp.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        {{- if .Values.llamacpp.persistence.enabled }}
+        - name: llamacpp-models
+          mountPath: {{ .Values.llamacpp.persistence.mountPath }}
+        {{- end }}
+      {{- end }}
+      containers:
+      - name: llamacpp
+        image: "{{ .Values.llamacpp.image.repository }}:{{ .Values.llamacpp.image.tag }}"
+        imagePullPolicy: {{ .Values.llamacpp.image.pullPolicy }}
+        ports:
+        - name: llamacpp
+          containerPort: {{ .Values.llamacpp.service.port }}
+          protocol: TCP
+        env:
+        {{- range $key, $value := .Values.llamacpp.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- with .Values.llamacpp.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.llamacpp.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.llamacpp.livenessProbe.httpGet.path }}
+            port: {{ .Values.llamacpp.livenessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.llamacpp.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.llamacpp.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.llamacpp.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.llamacpp.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.llamacpp.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.llamacpp.readinessProbe.httpGet.path }}
+            port: {{ .Values.llamacpp.readinessProbe.httpGet.port }}
+          initialDelaySeconds: {{ .Values.llamacpp.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.llamacpp.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.llamacpp.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.llamacpp.readinessProbe.failureThreshold }}
+        {{- end }}
+        {{- with .Values.llamacpp.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.llamacpp.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        {{- if .Values.llamacpp.persistence.enabled }}
+        - name: llamacpp-models
+          mountPath: {{ .Values.llamacpp.persistence.mountPath }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.llamacpp.persistence.enabled }}
+      - name: llamacpp-models
+        persistentVolumeClaim:
+          claimName: {{ .Values.llamacpp.persistence.existingClaim | default (printf "%s-llamacpp-models" (include "ollama-intel.fullname" .)) }}
+      {{- end }}
+{{- end }}

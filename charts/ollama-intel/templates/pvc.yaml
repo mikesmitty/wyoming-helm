@@ -33,3 +33,21 @@ spec:
     requests:
       storage: {{ .Values.webui.persistence.size }}
 {{- end }}
+---
+{{- if and .Values.llamacpp.enabled .Values.llamacpp.persistence.enabled (not .Values.llamacpp.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-llamacpp-models
+  labels:
+    {{- include "ollama-intel.llamacpp.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.llamacpp.persistence.accessMode }}
+  {{- if .Values.llamacpp.persistence.storageClass }}
+  storageClassName: {{ .Values.llamacpp.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.llamacpp.persistence.size }}
+{{- end }}

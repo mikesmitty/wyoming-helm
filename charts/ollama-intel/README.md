@@ -5,8 +5,9 @@ This Helm chart deploys [Ollama](https://ollama.ai/) with Intel GPU support usin
 ## Features
 
 - Ollama server optimized for Intel GPUs with IPEX-LLM
+- Optional llama.cpp server with Intel GPU support (alternative to Ollama)
 - Open WebUI for easy interaction with Ollama models
-- Persistent storage for models and WebUI data
+- Persistent storage for models and WebUI data (separate storage for llama.cpp models)
 - Intel GPU support via device plugin (no privileged containers required)
 - Configurable resource limits and requests
 - Optional Ingress support for external access
@@ -161,6 +162,28 @@ The following table lists the configurable parameters and their default values.
 | `webui.ingress.className` | Ingress class name | `""` |
 | `webui.ingress.hosts` | Ingress hosts | `[{host: ollama-webui.local, paths: [{path: /, pathType: Prefix}]}]` |
 
+### Llama.cpp Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `llamacpp.enabled` | Enable llama.cpp server (alternative to Ollama) | `false` |
+| `llamacpp.replicaCount` | Number of llama.cpp replicas | `1` |
+| `llamacpp.image.repository` | Llama.cpp image repository | `ghcr.io/mikesmitty/llama-cpp-intel` |
+| `llamacpp.image.tag` | Llama.cpp image tag | `"server-intel-b6869"` |
+| `llamacpp.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `llamacpp.service.type` | Kubernetes service type | `ClusterIP` |
+| `llamacpp.service.port` | Llama.cpp service port | `8080` |
+| `llamacpp.model.name` | Model to automatically pull (e.g., "llama3.2:3b") | `""` |
+| `llamacpp.model.pullPolicy` | Model pull policy (Always/IfNotPresent/Never) | `IfNotPresent` |
+| `llamacpp.env.ONEAPI_DEVICE_SELECTOR` | OneAPI device selector | `"level_zero:0"` |
+| `llamacpp.persistence.enabled` | Enable persistent storage | `true` |
+| `llamacpp.persistence.size` | Storage size | `50Gi` |
+| `llamacpp.persistence.storageClass` | Storage class | `""` |
+| `llamacpp.persistence.accessMode` | Access mode | `ReadWriteOnce` |
+| `llamacpp.persistence.mountPath` | Mount path for models | `/models` |
+| `llamacpp.resources` | CPU/Memory/GPU resource requests/limits | `{}` |
+| `llamacpp.securityContext` | Container security context | See values.yaml |
+
 ### Common Configuration
 
 | Parameter | Description | Default |
@@ -224,6 +247,56 @@ webui:
           - ollama.example.com
 ```
 
+### With Llama.cpp (Alternative to Ollama)
+
+If you prefer to use llama.cpp instead of Ollama:
+
+```yaml
+# values.yaml
+ollama:
+  enabled: false  # Disable Ollama if you only want llama.cpp
+
+llamacpp:
+  enabled: true
+  model:
+    name: "llama3.2:3b"  # Automatically pull this model on startup
+    pullPolicy: IfNotPresent  # Options: Always, IfNotPresent, Never
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+      gpu.intel.com/i915: 1  # For older Intel GPUs (Gen 9-12)
+      # gpu.intel.com/xe: 1  # For newer Intel Xe GPUs (Arc, Flex, Max)
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+      gpu.intel.com/i915: 1
+      # gpu.intel.com/xe: 1
+
+nodeSelector:
+  intel.feature.node.kubernetes.io/gpu: "true"
+```
+
+```bash
+helm install my-ollama ./charts/ollama-intel -f values.yaml
+```
+
+**Model Pulling:**
+- When `llamacpp.model.name` is specified, an init container will automatically pull the model using Ollama before starting llama.cpp
+- `pullPolicy: IfNotPresent` (default) - Only pulls if the model doesn't exist
+- `pullPolicy: Always` - Always pulls the model on startup
+- `pullPolicy: Never` - Skips the init container entirely (model must be pre-loaded)
+- Models are stored in the persistent volume at `.ollama/models/`
+
+**About the Llama.cpp Image:**
+- The chart uses a custom-built llama.cpp image with Intel SYCL support
+- Built from the official [llama.cpp](https://github.com/ggml-org/llama.cpp) repository
+- Compiled with `GGML_SYCL_F16=ON` for FP16 precision optimization on Intel GPUs
+- Automatically built and updated via GitHub Actions (see [.github/workflows/build-llamacpp-intel.yaml](.github/workflows/build-llamacpp-intel.yaml))
+- Tags follow the pattern: `server-intel` (latest) and `server-intel-{version}` (e.g., `server-intel-b6869`)
+
+Note: Llama.cpp uses a separate persistent volume for models. While it supports the same GGUF model format as Ollama, the llama.cpp image is useful for running newer models that Ollama for Intel may not yet support due to slower update cycles.
+
 
 ## Usage
 
@@ -271,6 +344,23 @@ curl http://my-ollama-ollama:11434/api/generate -d '{
   "prompt": "Why is the sky blue?"
 }'
 ```
+
+### Using Llama.cpp
+
+If you enabled llama.cpp, you can access it via its service:
+
+```bash
+# Port forward to access llama.cpp locally
+kubectl port-forward service/my-ollama-llamacpp 8080:8080
+
+# Use the llama.cpp API
+curl http://localhost:8080/v1/chat/completions -H "Content-Type: application/json" -d '{
+  "model": "model-name",
+  "messages": [{"role": "user", "content": "Hello!"}]
+}'
+```
+
+Place your GGUF models in the persistent volume mounted at `/models`.
 
 ## Upgrading
 

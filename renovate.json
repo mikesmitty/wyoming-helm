@@ -3,6 +3,7 @@
   "extends": [
     "local>mikesmitty/renovate-config",
     "customManagers:dockerfileVersions",
+    "customManagers:githubActionsVersions",
     "customManagers:helmChartYamlAppVersions"
   ],
   "customManagers": [

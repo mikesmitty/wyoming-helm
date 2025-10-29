@@ -1,0 +1,76 @@
+name: Llama.cpp Intel SYCL Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-llamacpp-intel.yaml"
+  schedule:
+    # Rebuild monthly to get updates
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: mikesmitty/llama-cpp-intel
+  # renovate: datasource=github-releases depName=ggml-org/llama.cpp versioning=loose
+  LLAMACPP_VERSION: b6869
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Clone llama.cpp repository
+        run: |
+          git clone https://github.com/ggml-org/llama.cpp.git llama-cpp-repo
+          cd llama-cpp-repo
+          git checkout ${{ env.LLAMACPP_VERSION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=server-intel
+            type=raw,value=server-intel-${{ env.LLAMACPP_VERSION }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: llama-cpp-repo
+          file: llama-cpp-repo/.devops/intel.Dockerfile
+          target: server
+          build-args: |
+            GGML_SYCL_F16=ON
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Output image details
+        run: |
+          echo "Image built and pushed successfully"
+          echo "Llama.cpp version: ${{ env.LLAMACPP_VERSION }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Built with GGML_SYCL_F16=ON for FP16 optimization"

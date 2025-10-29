@@ -175,6 +175,103 @@ webui:
     #    hosts:
     #      - ollama-webui.local
 
+# Llama.cpp Intel GPU service configuration
+# Alternative to Ollama, runs llama.cpp with Intel GPU support
+llamacpp:
+  enabled: false
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/mikesmitty/llama-cpp-intel
+    tag: server-intel-b6869
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  # Model configuration
+  # Specify a model to automatically pull before starting llama.cpp
+  model:
+    # Model name (e.g., "llama3.2:3b", "qwen2.5:7b", or just "llama3.2")
+    # Leave empty to skip automatic model pulling
+    name: ""
+    # Pull policy for the init container
+    # Options: Always, IfNotPresent, Never
+    pullPolicy: IfNotPresent
+
+  # Environment variables for Intel GPU optimization
+  env:
+    # OneAPI device selector - use level_zero:0 for first Intel GPU
+    ONEAPI_DEVICE_SELECTOR: "level_zero:0"
+
+  # Additional environment variables
+  extraEnv: []
+  # Example:
+  # extraEnv:
+  #   - name: CUSTOM_VAR
+  #     value: "custom_value"
+
+  # Persistent storage for llama.cpp models
+  # Separate from Ollama to support newer models that Ollama for Intel may not yet support
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 50Gi # Models can be large
+    mountPath: /models
+    existingClaim: ""
+
+  # Resource limits and requests
+  # For Intel GPU acceleration, add gpu.intel.com/i915 or gpu.intel.com/xe resource
+  # This requires the Intel GPU Device Plugin to be installed on your cluster
+  # See: https://github.com/intel/intel-device-plugins-for-kubernetes
+  resources: {}
+    # limits:
+    #   cpu: 4000m
+    #   memory: 16Gi
+    #   gpu.intel.com/i915: 1
+    #   # gpu.intel.com/xe: 1
+    # requests:
+    #   cpu: 2000m
+    #   memory: 8Gi
+    #   gpu.intel.com/i915: 1
+    #   # gpu.intel.com/xe: 1
+
+  # Security context for the container
+  securityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Liveness probe configuration
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: llamacpp
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  # Readiness probe configuration
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: llamacpp
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
 # Common configuration
 # Node selector for pod assignment
 nodeSelector: {}

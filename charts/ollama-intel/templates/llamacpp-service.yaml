@@ -1,0 +1,17 @@
+{{- if .Values.llamacpp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ollama-intel.fullname" . }}-llamacpp
+  labels:
+    {{- include "ollama-intel.llamacpp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.llamacpp.service.type }}
+  ports:
+  - port: {{ .Values.llamacpp.service.port }}
+    targetPort: llamacpp
+    protocol: TCP
+    name: llamacpp
+  selector:
+    {{- include "ollama-intel.llamacpp.selectorLabels" . | nindent 4 }}
+{{- end }}
