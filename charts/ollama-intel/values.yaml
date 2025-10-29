@@ -134,7 +134,7 @@ webui:
 
   # Liveness probe configuration
   livenessProbe:
-    enabled: true
+    enabled: false
     httpGet:
       path: /
       port: webui
