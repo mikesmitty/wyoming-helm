@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Version comment to trigger a rebuild when updated
 # x-release-please-start-version
-# version 0.1.1
+# version 0.1.2
 # x-release-please-end
 
 # Base packages
