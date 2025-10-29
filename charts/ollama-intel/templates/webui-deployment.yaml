@@ -34,6 +34,12 @@ spec:
         env:
         - name: OLLAMA_BASE_URL
           value: "http://{{ include "ollama-intel.fullname" . }}-ollama:{{ .Values.ollama.service.port }}"
+        {{- if .Values.llamacpp.enabled }}
+        - name: OPENAI_API_BASE_URLS
+          value: "http://{{ include "ollama-intel.fullname" . }}-llamacpp:{{ .Values.llamacpp.service.port }}/v1"
+        - name: OPENAI_API_KEYS
+          value: "none"
+        {{- end }}
         {{- with .Values.webui.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

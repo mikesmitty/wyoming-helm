@@ -23,47 +23,44 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and .Values.llamacpp.model.name (ne .Values.llamacpp.model.pullPolicy "Never") }}
+      {{- if and .Values.llamacpp.model.ollama (ne .Values.llamacpp.model.pullPolicy "Never") }}
       initContainers:
-      - name: model-puller
-        {{- if .Values.ollama.image.repository }}
-        image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag | default .Chart.AppVersion }}"
-        {{- else }}
-        image: "ollama-intel:{{ .Values.ollama.image.tag | default .Chart.AppVersion }}"
-        {{- end }}
-        imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
+      - name: model-downloader
+        image: python:3.12-slim
+        imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
         - -c
         - |
-          # Check if model already exists based on pullPolicy
-          MODEL_NAME="{{ .Values.llamacpp.model.name }}"
+          set -e
+          MODEL_NAME="{{ .Values.llamacpp.model.ollama }}"
           PULL_POLICY="{{ .Values.llamacpp.model.pullPolicy }}"
+          MODELS_DIR="/models"
 
           # Extract model base name (without tag)
           MODEL_BASE=$(echo "$MODEL_NAME" | awk -F':' '{print $1}')
 
           # Check if model exists
           MODEL_EXISTS=false
-          if [ -d "{{ .Values.llamacpp.persistence.mountPath }}/.ollama/models" ]; then
-            # Simple check for model directory existence
-            if ls {{ .Values.llamacpp.persistence.mountPath }}/.ollama/models/*/{{ printf "${MODEL_BASE}" }} 2>/dev/null; then
-              MODEL_EXISTS=true
-            fi
+          if [ -d "$MODELS_DIR/manifests/registry.ollama.ai/library/$MODEL_BASE" ]; then
+            MODEL_EXISTS=true
           fi
 
-          # Pull model based on policy
+          # Download model based on policy
           if [ "$PULL_POLICY" = "Always" ] || { [ "$PULL_POLICY" = "IfNotPresent" ] && [ "$MODEL_EXISTS" = "false" ]; }; then
-            echo "Pulling model: $MODEL_NAME"
-            OLLAMA_MODELS={{ .Values.llamacpp.persistence.mountPath }}/.ollama ollama pull "$MODEL_NAME"
+            echo "Installing uv and ollama-downloader..."
+            pip install --no-cache-dir uv
+
+            echo "Downloading model: $MODEL_NAME"
+            uv tool run ollama-downloader model-download "$MODEL_NAME"
+
+            echo "Model downloaded successfully"
           else
-            echo "Model already exists, skipping pull"
+            echo "Model already exists, skipping download"
           fi
         env:
-        {{- range $key, $value := .Values.ollama.env }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
+        - name: OLLAMA_MODELS
+          value: "/models"
         {{- with .Values.llamacpp.securityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -71,18 +68,42 @@ spec:
         volumeMounts:
         {{- if .Values.llamacpp.persistence.enabled }}
         - name: llamacpp-models
-          mountPath: {{ .Values.llamacpp.persistence.mountPath }}
+          mountPath: /models
         {{- end }}
       {{- end }}
       containers:
       - name: llamacpp
         image: "{{ .Values.llamacpp.image.repository }}:{{ .Values.llamacpp.image.tag }}"
         imagePullPolicy: {{ .Values.llamacpp.image.pullPolicy }}
+        {{- if or .Values.llamacpp.model.ollama .Values.llamacpp.model.huggingface .Values.llamacpp.model.path }}
+        args:
+        {{- if .Values.llamacpp.model.huggingface }}
+        - --hf-repo
+        - {{ .Values.llamacpp.model.huggingface | quote }}
+        {{- else if .Values.llamacpp.model.path }}
+        - --model
+        - {{ printf "/models/%s" .Values.llamacpp.model.path | quote }}
+        {{- else if .Values.llamacpp.model.ollama }}
+        - --model
+        - {{ printf "/models/manifests/registry.ollama.ai/library/%s" (.Values.llamacpp.model.ollama | replace ":" "/") | quote }}
+        {{- end }}
+        - --ctx-size
+        - {{ .Values.llamacpp.args.ctxSize | quote }}
+        - --n-gpu-layers
+        - {{ .Values.llamacpp.args.nGpuLayers | quote }}
+        {{- range .Values.llamacpp.args.extra }}
+        - {{ . | quote }}
+        {{- end }}
+        {{- end }}
         ports:
         - name: llamacpp
           containerPort: {{ .Values.llamacpp.service.port }}
           protocol: TCP
         env:
+        {{- if .Values.llamacpp.model.huggingface }}
+        - name: LLAMA_CACHE
+          value: /models/.cache
+        {{- end }}
         {{- range $key, $value := .Values.llamacpp.env }}
         - name: {{ $key }}
           value: {{ $value | quote }}
@@ -121,7 +142,7 @@ spec:
         volumeMounts:
         {{- if .Values.llamacpp.persistence.enabled }}
         - name: llamacpp-models
-          mountPath: {{ .Values.llamacpp.persistence.mountPath }}
+          mountPath: /models
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

@@ -173,8 +173,13 @@ The following table lists the configurable parameters and their default values.
 | `llamacpp.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `llamacpp.service.type` | Kubernetes service type | `ClusterIP` |
 | `llamacpp.service.port` | Llama.cpp service port | `8080` |
-| `llamacpp.model.name` | Model to automatically pull (e.g., "llama3.2:3b") | `""` |
-| `llamacpp.model.pullPolicy` | Model pull policy (Always/IfNotPresent/Never) | `IfNotPresent` |
+| `llamacpp.model.ollama` | Ollama model to download (e.g., "llama3.2:3b") | `""` |
+| `llamacpp.model.huggingface` | HuggingFace model (e.g., "bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0") | `""` |
+| `llamacpp.model.path` | Local model path (relative to mountPath) | `""` |
+| `llamacpp.model.pullPolicy` | Model pull policy for Ollama models (Always/IfNotPresent/Never) | `IfNotPresent` |
+| `llamacpp.args.ctxSize` | Context size (token limit) | `2048` |
+| `llamacpp.args.nGpuLayers` | Number of GPU layers to offload (-1 for all) | `40` |
+| `llamacpp.args.extra` | Additional command-line arguments | `[]` |
 | `llamacpp.env.ONEAPI_DEVICE_SELECTOR` | OneAPI device selector | `"level_zero:0"` |
 | `llamacpp.persistence.enabled` | Enable persistent storage | `true` |
 | `llamacpp.persistence.size` | Storage size | `50Gi` |
@@ -249,7 +254,9 @@ webui:
 
 ### With Llama.cpp (Alternative to Ollama)
 
-If you prefer to use llama.cpp instead of Ollama:
+If you prefer to use llama.cpp instead of Ollama, you have three options for loading models:
+
+#### Option 1: Download from Ollama Library
 
 ```yaml
 # values.yaml
@@ -259,8 +266,11 @@ ollama:
 llamacpp:
   enabled: true
   model:
-    name: "llama3.2:3b"  # Automatically pull this model on startup
+    ollama: "llama3.2:3b"  # Download from Ollama library via ollama-downloader
     pullPolicy: IfNotPresent  # Options: Always, IfNotPresent, Never
+  args:
+    ctxSize: 2048
+    nGpuLayers: 40
   resources:
     limits:
       cpu: 4000m
@@ -277,16 +287,57 @@ nodeSelector:
   intel.feature.node.kubernetes.io/gpu: "true"
 ```
 
+#### Option 2: Download from HuggingFace
+
+```yaml
+# values.yaml
+llamacpp:
+  enabled: true
+  model:
+    huggingface: "bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0"
+  args:
+    ctxSize: 2048
+    nGpuLayers: 40
+```
+
+#### Option 3: Use Pre-loaded Model
+
+```yaml
+# values.yaml
+llamacpp:
+  enabled: true
+  model:
+    path: "my-model.gguf"  # Relative to persistence.mountPath
+  args:
+    ctxSize: 2048
+    nGpuLayers: 40
+```
+
 ```bash
 helm install my-ollama ./charts/ollama-intel -f values.yaml
 ```
 
-**Model Pulling:**
-- When `llamacpp.model.name` is specified, an init container will automatically pull the model using Ollama before starting llama.cpp
-- `pullPolicy: IfNotPresent` (default) - Only pulls if the model doesn't exist
-- `pullPolicy: Always` - Always pulls the model on startup
-- `pullPolicy: Never` - Skips the init container entirely (model must be pre-loaded)
-- Models are stored in the persistent volume at `.ollama/models/`
+**Model Loading Methods:**
+1. **Ollama Models** (`model.ollama`): Downloaded via [ollama-downloader](https://pypi.org/project/ollama-downloader/) using uv in an init container
+   - Stored in Ollama's standard directory structure at the PVC root (`manifests/`, `blobs/`)
+   - Supports pullPolicy: `Always`, `IfNotPresent` (default), `Never`
+
+2. **HuggingFace Models** (`model.huggingface`): Downloaded directly by llama.cpp using the `--hf-repo` flag
+   - Cached in `.cache/` subdirectory via `LLAMA_CACHE` environment variable
+   - Format: `"repo/model:filename"` (e.g., `"bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0"`)
+
+3. **Local Models** (`model.path`): Use a pre-loaded GGUF file from the persistent volume
+   - Path is relative to the PVC root (e.g., `"my-model.gguf"`)
+
+**Server Arguments:**
+- `ctxSize`: Token context length (default: 2048)
+- `nGpuLayers`: Number of layers to offload to GPU (default: 40, use -1 for all layers)
+- `extra`: Additional command-line arguments as a list (e.g., `["--threads", "4"]`)
+
+**Open WebUI Integration:**
+- When llama.cpp is enabled, it's automatically added to Open WebUI as an OpenAI-compatible endpoint
+- Models appear in the WebUI under the OpenAI models section
+- No API key required (set to "none")
 
 **About the Llama.cpp Image:**
 - The chart uses a custom-built llama.cpp image with Intel SYCL support
