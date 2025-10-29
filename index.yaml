@@ -109,6 +109,30 @@ entries:
   ollama-intel:
   - apiVersion: v2
     appVersion: 2.2.0
+    created: "2025-10-29T13:55:52.335617735Z"
+    description: A Helm chart for Ollama with Intel GPU support and Open WebUI
+    digest: 69f6d379da4f18eb1ca19bffcb8ef44e222a0a0fa041a20af1daabecf782a6d8
+    keywords:
+    - ollama
+    - intel
+    - gpu
+    - ipex-llm
+    - llm
+    - ai
+    - open-webui
+    maintainers:
+    - name: mikesmitty
+    name: ollama-intel
+    sources:
+    - https://github.com/charlescng/ollama-intel-gpu
+    - https://github.com/ollama/ollama
+    - https://github.com/open-webui/open-webui
+    type: application
+    urls:
+    - https://github.com/mikesmitty/wyoming-helm/releases/download/ollama-intel-0.2.0/ollama-intel-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 2.2.0
     created: "2025-10-29T01:35:59.758358495Z"
     description: A Helm chart for Ollama with Intel GPU support and Open WebUI
     digest: 8f1174d158dfac0ac2a1b017e4dfd36c6b3257ad2e94ad8e2caf16a3e5b8703e
@@ -293,4 +317,4 @@ entries:
     urls:
     - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-whisper-0.5.0/wyoming-whisper-0.5.0.tgz
     version: 0.5.0
-generated: "2025-10-29T01:35:59.758393481Z"
+generated: "2025-10-29T13:55:52.335658119Z"
