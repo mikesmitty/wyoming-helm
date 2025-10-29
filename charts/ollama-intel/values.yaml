@@ -191,7 +191,7 @@ affinity: {}
 
 # Pod security context
 podSecurityContext:
-  fsGroup: 1000
+  fsGroup: 1001
   fsGroupChangePolicy: "OnRootMismatch"
 
 # Image pull secrets
