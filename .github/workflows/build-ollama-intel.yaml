@@ -34,21 +34,6 @@ jobs:
           echo "version=${APP_VERSION}" >> $GITHUB_OUTPUT
           echo "App version: ${APP_VERSION}"
 
-      - name: Extract build arguments from values.yaml
-        id: build-args
-        run: |
-          IPEXLLM_RELEASE_REPO=$(awk '/IPEXLLM_RELEASE_REPO:/ {print $2}' charts/ollama-intel/values.yaml | tr -d '"')
-          IPEXLLM_RELEASE_VERSION=$(awk '/IPEXLLM_RELEASE_VERSON:/ {print $2}' charts/ollama-intel/values.yaml | tr -d '"')
-          IPEXLLM_PORTABLE_ZIP_FILENAME=$(awk '/IPEXLLM_PORTABLE_ZIP_FILENAME:/ {print $2}' charts/ollama-intel/values.yaml | tr -d '"')
-
-          echo "ipexllm_repo=${IPEXLLM_RELEASE_REPO}" >> $GITHUB_OUTPUT
-          echo "ipexllm_version=${IPEXLLM_RELEASE_VERSION}" >> $GITHUB_OUTPUT
-          echo "ipexllm_zip=${IPEXLLM_PORTABLE_ZIP_FILENAME}" >> $GITHUB_OUTPUT
-
-          echo "IPEX-LLM Repo: ${IPEXLLM_RELEASE_REPO}"
-          echo "IPEX-LLM Version: ${IPEXLLM_RELEASE_VERSION}"
-          echo "IPEX-LLM Zip: ${IPEXLLM_PORTABLE_ZIP_FILENAME}"
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -77,10 +62,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            IPEXLLM_RELEASE_REPO=${{ steps.build-args.outputs.ipexllm_repo }}
-            IPEXLLM_RELEASE_VERSION=${{ steps.build-args.outputs.ipexllm_version }}
-            IPEXLLM_PORTABLE_ZIP_FILENAME=${{ steps.build-args.outputs.ipexllm_zip }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
@@ -89,5 +70,5 @@ jobs:
         run: |
           echo "Image built and pushed successfully"
           echo "App version: ${{ steps.app-version.outputs.version }}"
-          echo "IPEX-LLM version: ${{ steps.build-args.outputs.ipexllm_version }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Build args use defaults from Dockerfile"

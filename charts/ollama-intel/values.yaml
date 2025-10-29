@@ -7,12 +7,6 @@ ollama:
     tag: ""
     pullPolicy: IfNotPresent
 
-  # Build arguments for the Dockerfile
-  buildArgs:
-    IPEXLLM_RELEASE_REPO: "ipex-llm/ipex-llm"
-    IPEXLLM_RELEASE_VERSON: "v2.2.0"
-    IPEXLLM_PORTABLE_ZIP_FILENAME: "ollama-ipex-llm-2.2.0-ubuntu.tgz"
-
   service:
     type: ClusterIP
     port: 11434
@@ -108,13 +102,12 @@ webui:
     # This will be used if you create an Ingress or NodePort service
     externalPort: 3000
 
-  # Environment variables
-  env:
-    # This should point to the ollama service
-    OLLAMA_BASE_URL: 'http://{{ include "ollama-intel.fullname" . }}-ollama:11434'
-
   # Additional environment variables
   extraEnv: []
+  # Example:
+  # extraEnv:
+  #   - name: CUSTOM_VAR
+  #     value: "custom_value"
 
   # Persistent storage for WebUI data
   persistence:
