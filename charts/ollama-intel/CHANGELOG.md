@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.0...ollama-intel-v0.2.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* add args for llama.cpp ([0199244](https://github.com/mikesmitty/wyoming-helm/commit/01992442d92ca5a6bacfb4e38b69ea37f3838e95))
+
 ## [0.2.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.4...ollama-intel-v0.2.0) (2025-10-29)
 
 
