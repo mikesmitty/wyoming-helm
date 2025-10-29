@@ -151,7 +151,7 @@ The following table lists the configurable parameters and their default values.
 | `webui.enabled` | Enable Open WebUI | `true` |
 | `webui.replicaCount` | Number of WebUI replicas | `1` |
 | `webui.image.repository` | WebUI image repository | `ghcr.io/open-webui/open-webui` |
-| `webui.image.tag` | WebUI image tag | `latest` |
+| `webui.image.tag` | WebUI image tag | `"0.6.34"` |
 | `webui.service.type` | Kubernetes service type | `ClusterIP` |
 | `webui.service.port` | WebUI service port | `8080` |
 | `webui.service.externalPort` | External port for port-forward | `3000` |
