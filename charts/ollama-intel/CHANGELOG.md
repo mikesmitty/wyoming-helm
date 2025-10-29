@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.2...ollama-intel-v0.1.3) (2025-10-29)
+
+
+### Bug Fixes
+
+* disable liveness probe by default ([f0519e8](https://github.com/mikesmitty/wyoming-helm/commit/f0519e8c81d541655dd7e121afb98ccba5acc056))
+* update fsGroup to match gid ([c44be9f](https://github.com/mikesmitty/wyoming-helm/commit/c44be9fb2179bbe116787db490362dc3267f1c61))
+
 ## [0.1.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.1.1...ollama-intel-v0.1.2) (2025-10-29)
 
 
