@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.3...ollama-intel-v0.2.4) (2025-10-30)
+
+
+### Bug Fixes
+
+* use recreate deployment strategy ([5de926c](https://github.com/mikesmitty/wyoming-helm/commit/5de926c27f7fd2b0f961bc9a3b4a9ce90df42ad2))
+
 ## [0.2.3](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.2...ollama-intel-v0.2.3) (2025-10-30)
 
 
