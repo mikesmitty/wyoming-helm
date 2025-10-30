@@ -144,5 +144,7 @@ def main():
     download_model(model_name, output_dir)
 
 
-if __name__ == '__main__':
+# Note: When embedded in Helm templates, the if __name__ block is skipped
+# and download_model() is called directly with template variables
+if __name__ == '__main__' and len(sys.argv) > 1:
     main()

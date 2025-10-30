@@ -35,7 +35,6 @@ spec:
           {{ .Files.Get "scripts/download-ollama-model.py" | nindent 10 }}
 
           # Main execution
-          import sys
           MODEL_NAME = "{{ .Values.llamacpp.model.ollama }}"
           PULL_POLICY = "{{ .Values.llamacpp.model.pullPolicy }}"
           MODELS_DIR = "/models"
@@ -56,8 +55,10 @@ spec:
           if PULL_POLICY == "Always" or (PULL_POLICY == "IfNotPresent" and not model_exists):
               print(f"Downloading model: {MODEL_NAME}")
               download_model(MODEL_NAME, MODELS_DIR)
-          else:
+          elif model_exists:
               print(f"Model {MODEL_NAME} already exists, skipping download")
+          else:
+              print(f"Model {MODEL_NAME} not found and pull policy is {PULL_POLICY}")
         {{- with .Values.llamacpp.securityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
