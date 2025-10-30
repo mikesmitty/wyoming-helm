@@ -318,8 +318,9 @@ helm install my-ollama ./charts/ollama-intel -f values.yaml
 ```
 
 **Model Loading Methods:**
-1. **Ollama Models** (`model.ollama`): Downloaded via [ollama-downloader](https://pypi.org/project/ollama-downloader/) using uv in an init container
+1. **Ollama Models** (`model.ollama`): Downloaded directly from Ollama registry API using a minimal Python script in the init container
    - Stored in Ollama's standard directory structure at the PVC root (`manifests/`, `blobs/`)
+   - Uses only Python stdlib (urllib, json) - no external dependencies
    - Supports pullPolicy: `Always`, `IfNotPresent` (default), `Never`
 
 2. **HuggingFace Models** (`model.huggingface`): Downloaded directly by llama.cpp using the `--hf-repo` flag

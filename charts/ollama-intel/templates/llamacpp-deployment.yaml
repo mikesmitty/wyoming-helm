@@ -29,38 +29,35 @@ spec:
         image: python:3.12-slim
         imagePullPolicy: IfNotPresent
         command:
-        - /bin/sh
+        - python3
         - -c
         - |
-          set -e
-          MODEL_NAME="{{ .Values.llamacpp.model.ollama }}"
-          PULL_POLICY="{{ .Values.llamacpp.model.pullPolicy }}"
-          MODELS_DIR="/models"
+          {{ .Files.Get "scripts/download-ollama-model.py" | nindent 10 }}
+
+          # Main execution
+          import sys
+          MODEL_NAME = "{{ .Values.llamacpp.model.ollama }}"
+          PULL_POLICY = "{{ .Values.llamacpp.model.pullPolicy }}"
+          MODELS_DIR = "/models"
 
           # Extract model base name (without tag)
-          MODEL_BASE=$(echo "$MODEL_NAME" | awk -F':' '{print $1}')
+          if ':' in MODEL_NAME:
+              model_base, tag = MODEL_NAME.split(':', 1)
+          else:
+              model_base = MODEL_NAME
+              tag = 'latest'
 
           # Check if model exists
-          MODEL_EXISTS=false
-          if [ -d "$MODELS_DIR/manifests/registry.ollama.ai/library/$MODEL_BASE" ]; then
-            MODEL_EXISTS=true
-          fi
+          from pathlib import Path
+          manifest_path = Path(MODELS_DIR) / "manifests" / "registry.ollama.ai" / "library" / model_base / tag
+          model_exists = manifest_path.exists()
 
           # Download model based on policy
-          if [ "$PULL_POLICY" = "Always" ] || { [ "$PULL_POLICY" = "IfNotPresent" ] && [ "$MODEL_EXISTS" = "false" ]; }; then
-            echo "Installing uv and ollama-downloader..."
-            pip install --no-cache-dir uv
-
-            echo "Downloading model: $MODEL_NAME"
-            uv tool run ollama-downloader model-download "$MODEL_NAME"
-
-            echo "Model downloaded successfully"
-          else
-            echo "Model already exists, skipping download"
-          fi
-        env:
-        - name: OLLAMA_MODELS
-          value: "/models"
+          if PULL_POLICY == "Always" or (PULL_POLICY == "IfNotPresent" and not model_exists):
+              print(f"Downloading model: {MODEL_NAME}")
+              download_model(MODEL_NAME, MODELS_DIR)
+          else:
+              print(f"Model {MODEL_NAME} already exists, skipping download")
         {{- with .Values.llamacpp.securityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
