@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.1...ollama-intel-v0.2.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* replace model downloader ([6a27f9f](https://github.com/mikesmitty/wyoming-helm/commit/6a27f9fcbd1e8eb4fd828b07be3dff726766c29c))
+
 ## [0.2.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.0...ollama-intel-v0.2.1) (2025-10-29)
 
 
