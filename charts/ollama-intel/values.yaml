@@ -2,6 +2,10 @@
 ollama:
   replicaCount: 1
 
+  # Deployment strategy
+  strategy:
+    type: Recreate
+
   image:
     repository: ghcr.io/mikesmitty/ollama-intel-gpu
     tag: ""
@@ -93,6 +97,10 @@ webui:
   enabled: true
   replicaCount: 1
 
+  # Deployment strategy
+  strategy:
+    type: Recreate
+
   image:
     repository: ghcr.io/open-webui/open-webui
     # renovate: datasource=github-releases depName=open-webui/open-webui
@@ -180,6 +188,10 @@ webui:
 llamacpp:
   enabled: false
   replicaCount: 1
+
+  # Deployment strategy
+  strategy:
+    type: Recreate
 
   image:
     repository: ghcr.io/mikesmitty/llama-cpp-intel

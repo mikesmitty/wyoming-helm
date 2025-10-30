@@ -7,6 +7,10 @@ metadata:
     {{- include "ollama-intel.llamacpp.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.llamacpp.replicaCount }}
+  {{- with .Values.llamacpp.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "ollama-intel.llamacpp.selectorLabels" . | nindent 6 }}
