@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.3](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.2...ollama-intel-v0.2.3) (2025-10-30)
+
+
+### Bug Fixes
+
+* disable liveness probe by default ([4cbb611](https://github.com/mikesmitty/wyoming-helm/commit/4cbb611695cc11b7ec8e4aeebe77ae28b9265cad))
+* fix ollama downloader ([797118b](https://github.com/mikesmitty/wyoming-helm/commit/797118bc46c1d62a649da10ebf88136afa28350b))
+* switch to existing container uid ([67b178d](https://github.com/mikesmitty/wyoming-helm/commit/67b178d431e4c7cff914b73547713cfc19cb7962))
+
 ## [0.2.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.1...ollama-intel-v0.2.2) (2025-10-30)
 
 
