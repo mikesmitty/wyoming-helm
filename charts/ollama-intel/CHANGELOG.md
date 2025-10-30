@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.4...ollama-intel-v0.3.0) (2025-10-30)
+
+
+### Features
+
+* make nodeSelector and affinity adjustable per component ([bbd62a7](https://github.com/mikesmitty/wyoming-helm/commit/bbd62a71b04d009cb25ec1794f00eb28c315efb4))
+
 ## [0.2.4](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.3...ollama-intel-v0.2.4) (2025-10-30)
 
 
