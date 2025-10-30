@@ -264,8 +264,8 @@ llamacpp:
 
   # Security context for the container
   securityContext:
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 1000
+    runAsGroup: 1000
     runAsNonRoot: true
     allowPrivilegeEscalation: false
     capabilities:
@@ -273,6 +273,12 @@ llamacpp:
         - ALL
     seccompProfile:
       type: RuntimeDefault
+
+  # Pod security context for llamacpp
+  # Overrides global podSecurityContext for llamacpp pods
+  podSecurityContext:
+    fsGroup: 1000
+    fsGroupChangePolicy: "OnRootMismatch"
 
   # Liveness probe configuration
   livenessProbe:
