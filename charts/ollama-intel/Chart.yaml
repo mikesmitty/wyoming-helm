@@ -2,7 +2,7 @@ apiVersion: v2
 name: ollama-intel
 description: A Helm chart for Ollama with Intel GPU support and Open WebUI
 type: application
-version: 0.2.3
+version: 0.2.4
 # renovate: datasource=github-releases depName=ipex-llm/ipex-llm
 appVersion: 2.2.0
 keywords:
