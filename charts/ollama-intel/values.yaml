@@ -282,7 +282,7 @@ llamacpp:
 
   # Liveness probe configuration
   livenessProbe:
-    enabled: true
+    enabled: false
     httpGet:
       path: /health
       port: llamacpp
