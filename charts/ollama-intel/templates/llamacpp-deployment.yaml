@@ -19,7 +19,7 @@ spec:
       labels:
         {{- include "ollama-intel.llamacpp.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.llamacpp.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -146,15 +146,15 @@ spec:
         - name: llamacpp-models
           mountPath: /models
         {{- end }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.llamacpp.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.llamacpp.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.llamacpp.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

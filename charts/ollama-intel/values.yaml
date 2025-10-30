@@ -92,6 +92,32 @@ ollama:
     timeoutSeconds: 5
     failureThreshold: 3
 
+  # Node selector for pod assignment
+  nodeSelector: {}
+  # Example: Schedule on nodes with Intel GPU (requires NFD operator)
+  # nodeSelector:
+  #   intel.feature.node.kubernetes.io/gpu: "true"
+
+  # Tolerations for pod assignment
+  tolerations: []
+  # Example:
+  # tolerations:
+  #   - key: "gpu"
+  #     operator: "Equal"
+  #     value: "intel"
+  #     effect: "NoSchedule"
+
+  # Affinity for pod assignment
+  affinity: {}
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 1001
+    fsGroupChangePolicy: "OnRootMismatch"
+
+  # Image pull secrets
+  imagePullSecrets: []
+
 # Open WebUI configuration
 webui:
   enabled: true
@@ -182,6 +208,23 @@ webui:
     #  - secretName: ollama-webui-tls
     #    hosts:
     #      - ollama-webui.local
+
+  # Node selector for pod assignment
+  nodeSelector: {}
+
+  # Tolerations for pod assignment
+  tolerations: []
+
+  # Affinity for pod assignment
+  affinity: {}
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 1001
+    fsGroupChangePolicy: "OnRootMismatch"
+
+  # Image pull secrets
+  imagePullSecrets: []
 
 # Llama.cpp Intel GPU service configuration
 # Alternative to Ollama, runs llama.cpp with Intel GPU support
@@ -286,11 +329,13 @@ llamacpp:
     seccompProfile:
       type: RuntimeDefault
 
-  # Pod security context for llamacpp
-  # Overrides global podSecurityContext for llamacpp pods
+  # Pod security context
   podSecurityContext:
     fsGroup: 1000
     fsGroupChangePolicy: "OnRootMismatch"
+
+  # Image pull secrets
+  imagePullSecrets: []
 
   # Liveness probe configuration
   livenessProbe:
@@ -314,31 +359,23 @@ llamacpp:
     timeoutSeconds: 5
     failureThreshold: 3
 
-# Common configuration
-# Node selector for pod assignment
-nodeSelector: {}
-# Example: Schedule on nodes with Intel GPU (requires NFD operator)
-# nodeSelector:
-#   intel.feature.node.kubernetes.io/gpu: "true"
+  # Node selector for pod assignment
+  nodeSelector: {}
+  # Example: Schedule on nodes with Intel GPU (requires NFD operator)
+  # nodeSelector:
+  #   intel.feature.node.kubernetes.io/gpu: "true"
 
-# Tolerations for pod assignment
-tolerations: []
+  # Tolerations for pod assignment
+  tolerations: []
   # Example:
-  # - key: "gpu"
-  #   operator: "Equal"
-  #   value: "intel"
-  #   effect: "NoSchedule"
+  # tolerations:
+  #   - key: "gpu"
+  #     operator: "Equal"
+  #     value: "intel"
+  #     effect: "NoSchedule"
 
-# Affinity for pod assignment
-affinity: {}
-
-# Pod security context
-podSecurityContext:
-  fsGroup: 1001
-  fsGroupChangePolicy: "OnRootMismatch"
-
-# Image pull secrets
-imagePullSecrets: []
+  # Affinity for pod assignment
+  affinity: {}
 
 # Name overrides
 nameOverride: ""

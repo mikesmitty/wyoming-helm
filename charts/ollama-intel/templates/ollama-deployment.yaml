@@ -18,11 +18,11 @@ spec:
       labels:
         {{- include "ollama-intel.ollama.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.ollama.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.podSecurityContext }}
+      {{- with .Values.ollama.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -81,15 +81,15 @@ spec:
         - name: ollama-data
           mountPath: {{ .Values.ollama.persistence.mountPath }}
         {{- end }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.ollama.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.ollama.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.ollama.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
