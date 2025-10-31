@@ -1,5 +1,5 @@
 {
-    "charts/wyoming-whisper": "0.5.1",
+    "charts/wyoming-whisper": "0.6.0",
     "charts/wyoming-piper": "0.5.0",
     "charts/kokoro-wyoming": "0.6.3",
     "charts/ollama-intel": "0.3.0"
