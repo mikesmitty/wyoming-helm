@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-0.3.0...ollama-intel-v0.4.0) (2025-10-31)
+
+
+### Features
+
+* switch to new ollama vulkan build ([6dbc17c](https://github.com/mikesmitty/wyoming-helm/commit/6dbc17cbe7a3e03faf23c3ecb87c5534ffcc8d93))
+
 ## [0.3.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.2.4...ollama-intel-v0.3.0) (2025-10-30)
 
 
