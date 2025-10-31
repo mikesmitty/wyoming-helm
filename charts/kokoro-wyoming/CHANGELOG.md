@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.3](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.6.2...kokoro-wyoming-v0.6.3) (2025-10-31)
+
+
+### Bug Fixes
+
+* Update ghcr.io/astral-sh/uv Docker tag to v0.9.7 ([#35](https://github.com/mikesmitty/wyoming-helm/issues/35)) ([98c29a8](https://github.com/mikesmitty/wyoming-helm/commit/98c29a8a682a5c86fe0e82c499dae41e42be6246))
+
 ## [0.6.2](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.6.1...kokoro-wyoming-v0.6.2) (2025-10-29)
 
 
