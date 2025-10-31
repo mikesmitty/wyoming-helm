@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-v0.5.1...wyoming-whisper-v0.6.0) (2025-10-31)
+
+
+### Features
+
+* update rhasspy/wyoming-whisper to v3 ([633845a](https://github.com/mikesmitty/wyoming-helm/commit/633845a52f025fb1c9cf37c9c0a158b96eb92864))
+
 ## [0.5.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-v0.5.0...wyoming-whisper-v0.5.1) (2025-10-25)
 
 
