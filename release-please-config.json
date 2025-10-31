@@ -33,13 +33,7 @@
     },
     "charts/ollama-intel": {
       "release-type": "helm",
-      "package-name": "ollama-intel",
-      "extra-files": [
-        {
-          "type": "generic",
-          "path": "docker/Dockerfile"
-        }
-      ]
+      "package-name": "ollama-intel"
     }
   }
 }

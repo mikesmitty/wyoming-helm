@@ -31,8 +31,6 @@ spec:
         {{- if .Values.ollama.image.repository }}
         image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag | default .Chart.AppVersion }}"
         {{- else }}
-        # Note: This chart expects a pre-built image or manual build
-        # Build the image from charts/ollama-intel/docker/Dockerfile
         image: "ollama-intel:{{ .Values.ollama.image.tag | default .Chart.AppVersion }}"
         {{- end }}
         imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
