@@ -1,12 +1,12 @@
-name: Ollama Intel GPU Image
+name: Ollama Upstream Vulkan Image
 
 on:
   push:
     branches:
       - main
     paths:
-      - ".github/workflows/build-ollama-intel.yaml"
-      - "charts/ollama-intel/docker/**"
+      - ".github/workflows/build-ollama-upstream.yaml"
+      - "charts/ollama-intel/Chart.yaml"
   schedule:
     # Rebuild monthly to get updates
     - cron: "0 0 1 * *"
@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: mikesmitty/ollama-intel-gpu
+  IMAGE_NAME: mikesmitty/ollama-vulkan
 
 jobs:
   build-and-push:
@@ -27,12 +27,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Extract appVersion
-        id: app-version
+      - name: Extract Ollama version from Chart.yaml
+        id: ollama-version
         run: |
-          APP_VERSION=$(awk '/^appVersion:/ {print $2}' charts/ollama-intel/Chart.yaml | tr -d '"')
-          echo "version=${APP_VERSION}" >> $GITHUB_OUTPUT
-          echo "App version: ${APP_VERSION}"
+          OLLAMA_VERSION=$(awk '/^appVersion:/ {print $2}' charts/ollama-intel/Chart.yaml | tr -d '"')
+          echo "version=v${OLLAMA_VERSION}" >> $GITHUB_OUTPUT
+          echo "version_short=${OLLAMA_VERSION}" >> $GITHUB_OUTPUT
+          echo "Building Ollama version: v${OLLAMA_VERSION}"
+
+      - name: Clone ollama repository
+        run: |
+          git clone --depth 1 --branch ${{ steps.ollama-version.outputs.version }} https://github.com/ollama/ollama.git ollama-src
+          echo "Cloned ollama at ${{ steps.ollama-version.outputs.version }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,14 +57,16 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ steps.app-version.outputs.version }}
-            type=raw,value=${{ steps.app-version.outputs.version }}-{{date 'YYYYMMDD'}}
+            type=raw,value=${{ steps.ollama-version.outputs.version_short }}
+            type=raw,value=${{ steps.ollama-version.outputs.version }}
+            type=raw,value=${{ steps.ollama-version.outputs.version_short }}-{{date 'YYYYMMDD'}}
             type=sha,prefix={{branch}}-
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: charts/ollama-intel/docker
+          context: ollama-src
+          file: ollama-src/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -69,6 +77,9 @@ jobs:
       - name: Output image details
         run: |
           echo "Image built and pushed successfully"
-          echo "App version: ${{ steps.app-version.outputs.version }}"
+          echo "Ollama version: ${{ steps.ollama-version.outputs.version }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
-          echo "Build args use defaults from Dockerfile"
+          echo ""
+          echo "This image uses the upstream Ollama Vulkan Dockerfile"
+          echo "User: ubuntu (UID 1000)"
+          echo "Model storage: /home/ubuntu/.ollama"

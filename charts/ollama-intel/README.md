@@ -1,10 +1,10 @@
 # Ollama Intel GPU Helm Chart
 
-This Helm chart deploys [Ollama](https://ollama.ai/) with Intel GPU support using [IPEX-LLM](https://github.com/intel-analytics/ipex-llm) and [Open WebUI](https://github.com/open-webui/open-webui) on Kubernetes.
+This Helm chart deploys [Ollama](https://ollama.ai/) with Intel GPU support using Vulkan and [Open WebUI](https://github.com/open-webui/open-webui) on Kubernetes.
 
 ## Features
 
-- Ollama server optimized for Intel GPUs with IPEX-LLM
+- Ollama server with Vulkan GPU support
 - Optional llama.cpp server with Intel GPU support (alternative to Ollama)
 - Open WebUI for easy interaction with Ollama models
 - Persistent storage for models and WebUI data (separate storage for llama.cpp models)
@@ -61,43 +61,21 @@ kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel
 ## Docker Image
 
 The chart uses a pre-built Docker image from GitHub Container Registry:
-- `ghcr.io/mikesmitty/ollama-intel-gpu`
+- `ghcr.io/mikesmitty/ollama-vulkan`
 
-The image is automatically built from [charts/ollama-intel/docker/Dockerfile](charts/ollama-intel/docker/Dockerfile) via GitHub Actions.
+The image is automatically built from the upstream [ollama](https://github.com/ollama/ollama) repository via GitHub Actions (see [.github/workflows/build-ollama-upstream.yaml](.github/workflows/build-ollama-upstream.yaml)). It uses the official Ollama Dockerfile with Vulkan GPU support.
 
 ### Image Versioning
 
-By default, the chart uses the `appVersion` from [Chart.yaml](charts/ollama-intel/Chart.yaml) as the image tag. The current appVersion is "2.2.0", so it will use `ghcr.io/mikesmitty/ollama-intel-gpu:2.2.0`.
+By default, the chart uses the `appVersion` from [Chart.yaml](charts/ollama-intel/Chart.yaml) as the image tag.
+
+The appVersion is automatically kept up to date with the latest Ollama releases via Renovate Bot.
 
 You can override the tag in `values.yaml` if needed:
 ```yaml
 ollama:
   image:
-    tag: "2.2.0"  # Use a specific version
-```
-
-### Building Your Own Image (Optional)
-
-If you want to build and use your own image:
-
-```bash
-cd charts/ollama-intel/docker
-docker build \
-  --build-arg IPEXLLM_RELEASE_REPO=ipex-llm/ipex-llm \
-  --build-arg IPEXLLM_RELEASE_VERSION=v2.2.0 \
-  --build-arg IPEXLLM_PORTABLE_ZIP_FILENAME=ollama-ipex-llm-2.2.0-ubuntu.tgz \
-  -t your-registry/ollama-intel:2.2.0 .
-
-docker push your-registry/ollama-intel:2.2.0
-```
-
-Then update `values.yaml` to use your image:
-
-```yaml
-ollama:
-  image:
-    repository: your-registry/ollama-intel
-    tag: "2.2.0"
+    tag: "0.12.7"  # Use a specific version
 ```
 
 ## Installation
@@ -131,15 +109,16 @@ The following table lists the configurable parameters and their default values.
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `ollama.replicaCount` | Number of Ollama replicas | `1` |
-| `ollama.image.repository` | Ollama image repository | `ghcr.io/mikesmitty/ollama-intel-gpu` |
+| `ollama.image.repository` | Ollama image repository | `ghcr.io/mikesmitty/ollama-vulkan` |
 | `ollama.image.tag` | Ollama image tag (empty = use appVersion) | `""` |
 | `ollama.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `ollama.service.type` | Kubernetes service type | `ClusterIP` |
 | `ollama.service.port` | Ollama service port | `11434` |
-| `ollama.env.ONEAPI_DEVICE_SELECTOR` | OneAPI device selector | `"level_zero:0"` |
-| `ollama.env.IPEX_LLM_NUM_CTX` | IPEX-LLM context size | `"16384"` |
+| `ollama.env.OLLAMA_HOST` | Ollama bind address | `"0.0.0.0:11434"` |
+| `ollama.env.OLLAMA_KEEP_ALIVE` | Keep-alive duration | `"-1"` |
 | `ollama.persistence.enabled` | Enable persistent storage | `true` |
 | `ollama.persistence.size` | Storage size | `50Gi` |
+| `ollama.persistence.mountPath` | Mount path for models | `/home/ubuntu/.ollama` |
 | `ollama.persistence.storageClass` | Storage class | `""` |
 | `ollama.persistence.accessMode` | Access mode | `ReadWriteOnce` |
 | `ollama.resources` | CPU/Memory/GPU resource requests/limits | `{}` |
@@ -478,11 +457,6 @@ Verify the WebUI environment variable:
 ```bash
 kubectl exec deployment/my-ollama-webui -- env | grep OLLAMA_BASE_URL
 ```
-
-## Source
-
-Based on the docker-compose configuration from:
-https://github.com/charlescng/ollama-intel-gpu
 
 ## License
 

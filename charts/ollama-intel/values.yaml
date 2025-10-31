@@ -7,7 +7,7 @@ ollama:
     type: Recreate
 
   image:
-    repository: ghcr.io/mikesmitty/ollama-intel-gpu
+    repository: ghcr.io/mikesmitty/ollama-vulkan
     tag: ""
     pullPolicy: IfNotPresent
 
@@ -15,12 +15,8 @@ ollama:
     type: ClusterIP
     port: 11434
 
-  # Environment variables for Intel GPU optimization
+  # Environment variables
   env:
-    # OneAPI device selector - use level_zero:0 for first Intel GPU
-    ONEAPI_DEVICE_SELECTOR: "level_zero:0"
-    # IPEX-LLM context size
-    IPEX_LLM_NUM_CTX: "16384"
     # Ollama bind address
     OLLAMA_HOST: "0.0.0.0:11434"
     # Disable keep-alive to prevent model loading issues
@@ -39,7 +35,7 @@ ollama:
     storageClass: ""
     accessMode: ReadWriteOnce
     size: 50Gi # Ollama models can be large
-    mountPath: /app/.ollama
+    mountPath: /home/ubuntu/.ollama
     existingClaim: ""
 
   # Resource limits and requests
@@ -60,8 +56,8 @@ ollama:
 
   # Security context for the container
   securityContext:
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 1000
+    runAsGroup: 1000
     runAsNonRoot: true
     allowPrivilegeEscalation: false
     capabilities:
@@ -112,7 +108,7 @@ ollama:
 
   # Pod security context
   podSecurityContext:
-    fsGroup: 1001
+    fsGroup: 1000
     fsGroupChangePolicy: "OnRootMismatch"
 
   # Image pull secrets
