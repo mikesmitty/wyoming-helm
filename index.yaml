@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   kokoro-wyoming:
   - apiVersion: v2
+    appVersion: 0.6.3
+    created: "2025-10-31T01:17:32.054792979Z"
+    description: A Helm chart for Kokoro Wyoming text-to-speech service
+    digest: 6f8cf8455b1ff9dfb19a02277505061ad49dc2475e9915dfc6e511fe7a10f978
+    keywords:
+    - kokoro
+    - wyoming
+    - text-to-speech
+    - tts
+    - home-assistant
+    maintainers:
+    - name: mikesmitty
+    name: kokoro-wyoming
+    sources:
+    - https://github.com/nordwestt/kokoro-wyoming
+    - https://github.com/thewh1teagle/kokoro-onnx
+    type: application
+    urls:
+    - https://github.com/mikesmitty/wyoming-helm/releases/download/kokoro-wyoming-0.6.3/kokoro-wyoming-0.6.3.tgz
+    version: 0.6.3
+  - apiVersion: v2
     appVersion: 0.6.2
     created: "2025-10-29T23:06:59.421078718Z"
     description: A Helm chart for Kokoro Wyoming text-to-speech service
@@ -458,4 +479,4 @@ entries:
     urls:
     - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-whisper-0.5.0/wyoming-whisper-0.5.0.tgz
     version: 0.5.0
-generated: "2025-10-30T14:07:50.165444832Z"
+generated: "2025-10-31T01:17:32.271230315Z"
