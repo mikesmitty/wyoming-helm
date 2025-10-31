@@ -27,16 +27,20 @@ spec:
         args:
         - "--model"
         - "{{ .Values.model }}"
-        {{- if .Values.language }}
         - "--language"
         - "{{ .Values.language }}"
-        {{- end }}
         - "--beam-size"
         - "{{ .Values.beamSize }}"
         - "--device"
         - "{{ .Values.device }}"
         - "--compute-type"
         - "{{ .Values.computeType }}"
+        - "--stt-library"
+        - "{{ .Values.sttLibrary }}"
+        {{- if eq .Values.sttLibrary "faster-whisper" }}
+        - "--cpu-threads"
+        - "{{ .Values.cpuThreads }}"
+        {{- end }}
         {{- if .Values.initialPrompt }}
         - "--initial-prompt"
         - "{{ .Values.initialPrompt }}"

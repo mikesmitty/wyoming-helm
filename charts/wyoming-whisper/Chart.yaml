@@ -3,7 +3,7 @@ name: wyoming-whisper
 description: A Helm chart for Wyoming Whisper speech-to-text service
 type: application
 version: 0.5.1
-appVersion: "2.5.0"
+appVersion: "3.0.0"
 keywords:
   - whisper
   - wyoming

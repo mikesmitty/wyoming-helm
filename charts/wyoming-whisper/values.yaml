@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: rhasspy/wyoming-whisper
-  tag: 2.5.0
+  tag: 3.0.0
   pullPolicy: IfNotPresent
 
 service:
@@ -10,14 +10,16 @@ service:
   port: 10300
 
 # Whisper model configuration
-# Recommended for Home Assistant voice: tiny, base, or base-int8 for fast response times
+# In v3.0.0, default is "auto" which prefers parakeet model for best performance
 # Available models: tiny, base, small, medium, large, large-v2, large-v3, large-v3-turbo
 # Quantized (faster): tiny-int8, base-int8, small-int8, medium-int8, distil-large-v3
 # HuggingFace models: Systran/faster-distil-whisper-small.en, Systran/faster-whisper-large-v3
-model: distil-small.en
+# Parakeet model: parakeet (recommended, used when model is "auto")
+model: auto
 
-# Language code (e.g., en, de, fr, es, etc.) - leave empty for auto-detection
-language: ""
+# Language code (e.g., en, de, fr, es, ru, etc.)
+# In v3.0.0, default is "auto" for automatic language detection
+language: auto
 
 # Beam size for transcription (higher = more accurate but slower, 0 for auto)
 # For voice commands, lower values (1-3) provide faster responses
@@ -32,6 +34,19 @@ device: cpu
 # For CPU: int8 provides best performance with minimal quality loss
 # For larger throughput workloads, consider float16 with GPU
 computeType: default
+
+# STT library to use (v3.0.0+)
+# Options: auto, faster-whisper, transformers, sherpa, onnx-asr
+# "auto" will automatically select sherpa-onnx as the default library
+# faster-whisper: Uses faster-whisper library
+# transformers: Uses HuggingFace transformers
+# sherpa: Uses sherpa-onnx (supports Nvidia parakeet model, default with "auto")
+# onnx-asr: Uses onnx-asr (supports GigaAM for Russian)
+sttLibrary: auto
+
+# Number of CPU threads for inference (v3.0.0+, faster-whisper only)
+# Default is 4 threads, adjust based on your CPU capabilities
+cpuThreads: 4
 
 # Initial prompt to provide context for the first transcription window
 # Example: "Home Assistant voice commands" or domain-specific context
