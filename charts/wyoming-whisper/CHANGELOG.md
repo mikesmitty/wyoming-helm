@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-v0.6.1...wyoming-whisper-v0.6.2) (2025-11-01)
+
+
+### Bug Fixes
+
+* reset default beam size ([df175d2](https://github.com/mikesmitty/wyoming-helm/commit/df175d28decb77078f4f54a25e1294fb638bb829))
+
 ## [0.6.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-0.6.0...wyoming-whisper-v0.6.1) (2025-11-01)
 
 
