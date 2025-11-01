@@ -1,5 +1,9 @@
 replicaCount: 1
 
+# Deployment strategy
+strategy:
+  type: Recreate
+
 image:
   repository: rhasspy/wyoming-whisper
   tag: 3.0.0

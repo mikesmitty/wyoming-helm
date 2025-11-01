@@ -1,5 +1,9 @@
 replicaCount: 1
 
+# Deployment strategy
+strategy:
+  type: Recreate
+
 image:
   repository: rhasspy/wyoming-piper
   tag: 1.6.3
