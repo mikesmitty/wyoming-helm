@@ -27,7 +27,7 @@ language: auto
 
 # Beam size for transcription (higher = more accurate but slower, 0 for auto)
 # For voice commands, lower values (1-3) provide faster responses
-beamSize: 5
+beamSize: 0
 
 # Device to use for inference (cpu, cuda, auto)
 # CPU is recommended for Home Assistant voice use cases
