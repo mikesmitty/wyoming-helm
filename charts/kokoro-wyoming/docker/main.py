@@ -417,7 +417,7 @@ async def main():
         )]
     )
 
-    _LOGGER.info('Kokoro Onyx server starting on %s', args.uri)
+    _LOGGER.info('Kokoro ONNX server starting on %s', args.uri)
     server = AsyncServer.from_uri(args.uri)
 
     # Handle OS signals
