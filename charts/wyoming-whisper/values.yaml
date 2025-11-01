@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: rhasspy/wyoming-whisper
-  tag: 3.0.0
+  tag: 3.0.1
   pullPolicy: IfNotPresent
 
 service:
