@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.4.0...ollama-intel-v0.4.1) (2025-11-06)
+
+
+### Bug Fixes
+
+* Update ollama/ollama Docker tag to v0.12.9 ([#46](https://github.com/mikesmitty/wyoming-helm/issues/46)) ([f2760dc](https://github.com/mikesmitty/wyoming-helm/commit/f2760dc1d3feec9ff85d8b580a81d4da077d0225))
+
 ## [0.4.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-0.3.0...ollama-intel-v0.4.0) (2025-10-31)
 
 
