@@ -1,18 +1,14 @@
 # Kokoro Wyoming Helm Chart
 
-This Helm chart deploys [Kokoro Wyoming](https://github.com/nordwestt/kokoro-wyoming) text-to-speech service on Kubernetes. Kokoro Wyoming provides high-quality neural TTS using the Kokoro ONNX model with Wyoming protocol support for Home Assistant voice assistants.
+[Kokoro Wyoming](https://github.com/nordwestt/kokoro-wyoming) provides high-quality neural text-to-speech using the Kokoro ONNX model with Wyoming protocol support for Home Assistant voice assistants.
 
-## Overview
+## Features
 
-This chart is optimized for **Home Assistant voice assistant** deployments with a focus on:
-- **High-quality voices** - Neural TTS with natural-sounding speech
-- **Intel GPU acceleration** - Efficient inference with OpenVINO
-- **Easy integration** - Direct Wyoming protocol support for Home Assistant
-
-The chart deploys:
-- **Kokoro Wyoming** (`ghcr.io/mikesmitty/kokoro-wyoming-tts`) - Kokoro TTS with Wyoming protocol support
-- **Built-in Model** - The Kokoro v1.0 model is included in the container image
-- **Health Checks** - Liveness and readiness probes for reliability
+- High-quality neural TTS with natural-sounding speech
+- Intel GPU acceleration with OpenVINO
+- Wyoming protocol support for Home Assistant
+- Built-in Kokoro v1.0 model in container image
+- No persistent storage required (model included)
 
 ## Prerequisites
 
@@ -20,103 +16,95 @@ The chart deploys:
 - Helm 3.0+
 - (Optional) Intel GPU with device plugin for GPU acceleration
 
-## Installation
+## Quick Start
 
-### Install from OCI Registry (Recommended)
-
-Install the latest release from GitHub Container Registry:
+### Basic Installation (CPU Only)
 
 ```bash
 helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming
 ```
 
-Install a specific version:
+### With Intel GPU Acceleration
+
+First, ensure Intel GPU Device Plugin is installed:
 
 ```bash
-helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming --version 0.5.0
+# Using Kustomize
+kubectl apply -k https://github.com/intel/intel-device-plugins-for-kubernetes/deployments/gpu_plugin/overlays/nfd_labeled_nodes
+
+# Or using Helm
+helm repo add intel https://intel.github.io/helm-charts
+helm install intel-gpu-plugin intel/intel-device-plugins-gpu
 ```
 
-### Install from Source
-
-For development or local testing:
-
-```bash
-git clone https://github.com/mikesmitty/wyoming-helm.git
-cd wyoming-helm
-helm install kokoro ./charts/kokoro-wyoming
-```
-
-### Custom Configuration
-
-Create a values file for your environment (e.g., `production.yaml`, `homeassistant.yaml`):
+Create a `values.yaml` file:
 
 ```yaml
-# Enable Intel GPU acceleration
+# Use OpenVINO for Intel GPU acceleration
 onnxProvider: OpenVINOExecutionProvider
 
-# Resource limits for Intel GPU
 resources:
   limits:
     cpu: 1000m
     memory: 2Gi
-    gpu.intel.com/i915: 1
+    gpu.intel.com/i915: 1  # For older Intel GPUs (Gen 9-12)
+    # gpu.intel.com/xe: 1  # For newer Intel GPUs (Arc, Flex, Max)
   requests:
     cpu: 250m
     memory: 1Gi
     gpu.intel.com/i915: 1
 
-# Target Intel GPU nodes
 nodeSelector:
   intel.feature.node.kubernetes.io/gpu: "true"
 ```
 
-Install with custom values from OCI:
+Install the chart:
 
 ```bash
-helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming -f production.yaml
+helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming -f values.yaml
 ```
 
-Or from source:
+## Using with Home Assistant
 
-```bash
-helm install kokoro ./charts/kokoro-wyoming -f production.yaml
+After installation, add to your Home Assistant `configuration.yaml`:
+
+```yaml
+wyoming:
+  - platform: tts
+    host: kokoro-kokoro-wyoming.default.svc.cluster.local
+    port: 10210
 ```
+
+**Note**: Replace `default` with your namespace if different, and `kokoro` with your release name if different.
+
+Voices are selected in Home Assistant when configuring the TTS provider.
 
 ## Configuration
 
-The following table lists the configurable parameters:
+### Key Parameters
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `replicaCount` | Number of replicas | `1` |
-| `image.repository` | Kokoro Wyoming image repository | `ghcr.io/mikesmitty/kokoro-wyoming-tts` |
-| `image.tag` | Image tag | `latest` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `service.type` | Service type | `ClusterIP` |
+| `image.repository` | Kokoro image | `ghcr.io/mikesmitty/kokoro-wyoming-tts` |
+| `image.tag` | Image tag | `""` (uses appVersion) |
 | `service.port` | Service port | `10210` |
 | `onnxProvider` | ONNX execution provider | `OpenVINOExecutionProvider` |
 | `debug` | Enable debug logging | `false` |
-| `extraArgs` | Additional command line arguments | `[]` |
-| `resources` | Resource limits and requests | `{}` |
-| `livenessProbe.enabled` | Enable liveness probe | `true` |
-| `readinessProbe.enabled` | Enable readiness probe | `true` |
-| `nodeSelector` | Node selector | `{}` |
-| `tolerations` | Tolerations | `[]` |
-| `affinity` | Affinity rules | `{}` |
+| `resources` | CPU/Memory/GPU limits | `{}` |
 
-## ONNX Execution Providers
+### ONNX Execution Providers
 
-Kokoro Wyoming supports different ONNX execution providers for optimization:
+Choose the appropriate provider for your hardware:
 
-### OpenVINOExecutionProvider (Recommended for Intel Hardware)
-- **Best for**: Intel CPUs and Intel GPUs
-- **Performance**: Excellent with Intel GPU acceleration
-- **Setup**: Set `onnxProvider: OpenVINOExecutionProvider`
-- **Requirements**: Intel GPU device plugin if using GPU
+#### OpenVINOExecutionProvider (Recommended for Intel)
+
+Best for Intel CPUs and Intel GPUs:
 
 ```yaml
 onnxProvider: OpenVINOExecutionProvider
 
+# With Intel GPU
 resources:
   limits:
     gpu.intel.com/i915: 1
@@ -127,10 +115,9 @@ nodeSelector:
   intel.feature.node.kubernetes.io/gpu: "true"
 ```
 
-### CPUExecutionProvider
-- **Best for**: General CPU inference without GPU
-- **Performance**: Good for moderate TTS workloads
-- **Setup**: Set `onnxProvider: CPUExecutionProvider`
+#### CPUExecutionProvider
+
+For general CPU inference without GPU:
 
 ```yaml
 onnxProvider: CPUExecutionProvider
@@ -144,11 +131,9 @@ resources:
     memory: 1Gi
 ```
 
-### CUDAExecutionProvider
-- **Best for**: NVIDIA GPU acceleration
-- **Performance**: Excellent with CUDA GPUs
-- **Setup**: Set `onnxProvider: CUDAExecutionProvider`
-- **Requirements**: NVIDIA GPU device plugin
+#### CUDAExecutionProvider
+
+For NVIDIA GPU acceleration:
 
 ```yaml
 onnxProvider: CUDAExecutionProvider
@@ -160,62 +145,46 @@ resources:
     nvidia.com/gpu: 1
 ```
 
+### Intel GPU Selection
+
+Choose the appropriate GPU resource based on your hardware:
+
+```yaml
+# For older Intel GPUs (Gen 9-12, UHD Graphics)
+resources:
+  limits:
+    gpu.intel.com/i915: 1
+  requests:
+    gpu.intel.com/i915: 1
+
+# For newer Intel GPUs (Arc, Flex, Max)
+resources:
+  limits:
+    gpu.intel.com/xe: 1
+  requests:
+    gpu.intel.com/xe: 1
+```
+
+Verify GPU resources are available:
+
+```bash
+kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel.com/i915" != null or ."gpu.intel.com/xe" != null)'
+```
+
 ## Available Voices
 
-Voices are selected in Home Assistant when configuring the TTS provider. Available voices are read directly from the Kokoro model.
+Voices are read directly from the Kokoro model and selected in Home Assistant. For a complete list of available voices, see:
 
-For a complete list of available voices, see:
 - [Kokoro ONNX Voices](https://github.com/thewh1teagle/kokoro-onnx)
-
-## Usage
-
-### Accessing the Wyoming Service
-
-After installation, get connection details:
-
-```bash
-helm status kokoro
-```
-
-For ClusterIP service (default), port-forward to access locally:
-
-```bash
-kubectl port-forward svc/kokoro-kokoro-wyoming 10210:10210
-```
-
-Then connect to `tcp://localhost:10210`
-
-### Using with Home Assistant
-
-Add to your Home Assistant `configuration.yaml`:
-
-```yaml
-wyoming:
-  - platform: tts
-    host: kokoro-kokoro-wyoming.default.svc.cluster.local
-    port: 10210
-```
-
-Or if exposed externally via LoadBalancer:
-
-```yaml
-wyoming:
-  - platform: tts
-    host: <EXTERNAL_IP>
-    port: 10210
-```
 
 ## Advanced Configuration
 
-### Optimizing for Intel GPU
+### Resource Limits
 
-For best performance with Intel GPUs:
+Set appropriate resource limits based on your workload:
 
 ```yaml
-# Use OpenVINO execution provider
-onnxProvider: OpenVINOExecutionProvider
-
-# Request Intel GPU resources
+# For Intel GPU acceleration
 resources:
   limits:
     cpu: 1000m
@@ -225,10 +194,26 @@ resources:
     cpu: 250m
     memory: 1Gi
     gpu.intel.com/i915: 1
+```
 
-# Target nodes with Intel GPUs
+### Node Scheduling
+
+Target specific nodes with Intel GPUs:
+
+```yaml
 nodeSelector:
   intel.feature.node.kubernetes.io/gpu: "true"
+
+# Or use affinity for more control
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: intel.feature.node.kubernetes.io/gpu
+          operator: In
+          values:
+          - "true"
 ```
 
 ### Debug Logging
@@ -239,86 +224,65 @@ Enable debug mode for troubleshooting:
 debug: true
 ```
 
-### Complete Home Assistant TTS Example
-
-Full configuration optimized for Home Assistant with Intel GPU:
-
-```yaml
-# Intel GPU acceleration
-onnxProvider: OpenVINOExecutionProvider
-
-# Intel GPU resources
-resources:
-  limits:
-    cpu: 1000m
-    memory: 2Gi
-    gpu.intel.com/i915: 1
-  requests:
-    cpu: 250m
-    memory: 1Gi
-    gpu.intel.com/i915: 1
-
-# Target Intel GPU nodes
-nodeSelector:
-  intel.feature.node.kubernetes.io/gpu: "true"
-
-# Internal service (accessed from Home Assistant)
-service:
-  type: ClusterIP
-  port: 10210
-```
-
 ## Troubleshooting
 
-### View logs
+### View Logs
 
 ```bash
 kubectl logs -l app.kubernetes.io/name=kokoro-wyoming
 ```
 
-### Service not responding
+### Check Service Status
 
-Check pod status:
 ```bash
 kubectl get pods -l app.kubernetes.io/name=kokoro-wyoming
-kubectl describe pod <pod-name>
+kubectl get svc -l app.kubernetes.io/name=kokoro-wyoming
 ```
 
-Check if the readiness probe is passing:
+### Intel GPU Not Detected
+
+Ensure:
+1. Intel GPU Device Plugin is installed
+2. Intel GPU drivers are installed on nodes
+3. GPU resources are requested in values
+4. Node selector matches GPU nodes
+
+Check GPU availability:
+
 ```bash
-kubectl get pods -l app.kubernetes.io/name=kokoro-wyoming -o wide
+# Check GPU plugin pods
+kubectl get pods -n kube-system | grep gpu-plugin
+
+# Check GPU resources on nodes
+kubectl describe node <node-name> | grep -A 5 "Allocatable"
 ```
 
-### Intel GPU not detected
+### Port Forward for Testing
 
-Ensure the Intel GPU device plugin is installed:
 ```bash
-kubectl get nodes -o json | jq '.items[].status.allocatable | select(."gpu.intel.com/i915" != null)'
+kubectl port-forward svc/kokoro-kokoro-wyoming 10210:10210
 ```
 
-## Uninstallation
+Then test with Wyoming client:
 
-To uninstall/delete the deployment:
+```bash
+pip install wyoming
+echo "Hello from Kokoro" | wyoming-client --uri tcp://localhost:10210 --type tts
+```
+
+## Upgrading
+
+```bash
+helm upgrade kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming
+```
+
+## Uninstalling
 
 ```bash
 helm uninstall kokoro
 ```
 
-## Upgrading
-
-### To a newer chart version
-
-From OCI registry:
-
-```bash
-helm upgrade kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming --version 0.5.0
-```
-
-From source:
-
-```bash
-helm upgrade kokoro ./charts/kokoro-wyoming
-```
+**Note**: Kokoro does not use persistent storage since the model is included in the container image.
 
 ## References
 

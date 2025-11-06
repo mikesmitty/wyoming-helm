@@ -1,339 +1,124 @@
 # Wyoming Piper Helm Chart
 
-This Helm chart deploys the [Wyoming Piper](https://github.com/rhasspy/wyoming-piper) text-to-speech service on Kubernetes. Wyoming Piper provides fast, natural-sounding text-to-speech for Home Assistant voice assistants and other Wyoming protocol applications.
+[Wyoming Piper](https://github.com/rhasspy/wyoming-piper) provides fast, natural-sounding text-to-speech for Home Assistant voice assistants using neural voices with the Wyoming protocol.
 
-## What's New in v2
+## Quick Start
 
-Wyoming Piper v2 brings significant improvements:
-
-- **Better Performance** - Uses the piper1-gpl library for improved efficiency
-- **GPU Support** - Optional CUDA acceleration with `--use-cuda` flag
-- **Service Discovery** - Built-in zeroconf/mDNS discovery (v2.1.0+)
-- **Streaming by Default** - Audio streaming is now enabled by default for lower latency
-- **Improved Reliability** - Enhanced error handling and stability
-
-## Overview
-
-This chart is optimized for **Home Assistant voice assistant** deployments with a focus on:
-- **Natural speech** - High-quality voices with natural intonation
-- **Low latency** - Fast text-to-speech generation for voice responses
-- **Easy integration** - Direct Wyoming protocol support for Home Assistant
-
-The chart deploys:
-- **Wyoming Piper** (`rhasspy/wyoming-piper`) - Neural text-to-speech with Wyoming protocol support
-- **Persistent Storage** - Optional PVC for caching downloaded voice models (recommended)
-- **Health Checks** - Liveness and readiness probes for reliability
-
-## Prerequisites
-
-- Kubernetes 1.19+
-- Helm 3.0+
-- Persistent storage (recommended for faster startup)
-
-## Installation
-
-### Install from OCI Registry (Recommended)
-
-Install the latest release from GitHub Container Registry:
+### Install from OCI Registry
 
 ```bash
-helm install my-piper oci://ghcr.io/mikesmitty/wyoming-piper
+helm install piper oci://ghcr.io/mikesmitty/wyoming-piper
 ```
 
-Install a specific version:
+### Install with Custom Configuration
 
-```bash
-helm install my-piper oci://ghcr.io/mikesmitty/wyoming-piper --version 0.5.0
-```
-
-### Install from Source
-
-For development or local testing:
-
-```bash
-git clone https://github.com/mikesmitty/wyoming-helm.git
-cd wyoming-helm
-helm install my-piper ./charts/wyoming-piper
-```
-
-### Custom Configuration
-
-Create a values file for your environment (e.g., `production.yaml`, `homeassistant.yaml`):
+Create a `values.yaml` file:
 
 ```yaml
 # Use a high-quality English voice
 voice: en_US-lessac-high
 
-# Enable streaming for lower latency
-streaming: true
-
-# Enable persistent storage (recommended)
+# Enable persistent storage to cache voice models
 persistence:
   enabled: true
   size: 2Gi
-
-# Reasonable resources for TTS
-resources:
-  limits:
-    cpu: 1000m
-    memory: 1Gi
-  requests:
-    cpu: 250m
-    memory: 512Mi
 ```
 
-Install with custom values from OCI:
+Install the chart:
 
 ```bash
-helm install my-piper oci://ghcr.io/mikesmitty/wyoming-piper -f production.yaml
+helm install piper oci://ghcr.io/mikesmitty/wyoming-piper -f values.yaml
 ```
 
-Or from source:
+## Using with Home Assistant
 
-```bash
-helm install my-piper ./charts/wyoming-piper -f production.yaml
+After installation, add to your Home Assistant `configuration.yaml`:
+
+```yaml
+wyoming:
+  - platform: piper
+    host: piper-wyoming-piper.default.svc.cluster.local
+    port: 10200
 ```
+
+**Note**: Replace `default` with your namespace if different, and `piper` with your release name if different.
 
 ## Configuration
 
-The following table lists the configurable parameters:
+### Key Parameters
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `replicaCount` | Number of replicas | `1` |
-| `image.repository` | Wyoming Piper image repository | `rhasspy/wyoming-piper` |
-| `image.tag` | Image tag | `2.1.1` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | Service port | `10200` |
 | `voice` | Piper voice to use | `en_US-lessac-medium` |
-| `speaker` | Speaker ID/name for multi-speaker voices | `""` |
-| `noiseScale` | Generator noise (0.0-1.0) | `0.667` |
-| `lengthScale` | Phoneme length scale (speed) | `1.0` |
-| `noiseWScale` | Phoneme width noise | `0.333` |
-| `autoPunctuation` | Auto-add punctuation | `".?!"` |
+| `speaker` | Speaker ID for multi-speaker voices | `""` |
 | `streaming` | Enable audio streaming | `true` |
-| `samplesPerChunk` | Samples per audio chunk | `1024` |
-| `updateVoices` | Update voices list on startup | `false` |
-| `zeroconf` | Enable zeroconf/mDNS discovery (v2.1.0+) | `false` |
-| `useCuda` | Enable CUDA GPU acceleration | `false` |
-| `debug` | Enable debug logging | `false` |
-| `extraArgs` | Additional command line arguments | `[]` |
-| `resources` | Resource limits and requests | `{}` |
+| `lengthScale` | Speaking speed (1.0 = normal) | `1.0` |
+| `noiseScale` | Voice variation (0.0-1.0) | `0.667` |
+| `noiseWScale` | Phoneme width noise | `0.333` |
+| `updateVoices` | Update voices on startup | `false` |
 | `persistence.enabled` | Enable persistent storage | `true` |
-| `persistence.size` | PVC size | `2Gi` |
-| `persistence.storageClass` | Storage class | `""` |
-| `persistence.accessMode` | Access mode | `ReadWriteOnce` |
-| `persistence.existingClaim` | Use existing PVC | `""` |
-| `livenessProbe.enabled` | Enable liveness probe | `true` |
-| `readinessProbe.enabled` | Enable readiness probe | `true` |
-| `nodeSelector` | Node selector | `{}` |
-| `tolerations` | Tolerations | `[]` |
-| `affinity` | Affinity rules | `{}` |
+| `persistence.size` | Storage size | `2Gi` |
+| `resources` | CPU/Memory resource requests/limits | `{}` |
 
-## Available Voices
+### Voice Selection
 
-Wyoming Piper supports a wide variety of voices in multiple languages and quality levels.
+Piper supports many voices in multiple languages and quality levels:
 
-### Voice Quality Levels
+**Quality Levels:**
+- `low` - Fast, lower quality (~3-5MB)
+- `medium` - Balanced quality/speed (~10-20MB) - **Recommended**
+- `high` - Best quality, slower (~30-50MB)
 
-- **low** - Fastest generation, lowest quality (~3-5MB per voice)
-- **medium** - Balanced quality and speed (~10-20MB per voice) **← Recommended**
-- **high** - Best quality, slower generation (~30-50MB per voice)
-- **x-low** - Ultra-fast, minimal quality (some voices only)
+**Popular English Voices:**
+- `en_US-lessac-medium` - Male, clear and natural (default)
+- `en_US-lessac-high` - High-quality version
+- `en_US-amy-medium` - Female, clear
+- `en_GB-alan-medium` - Male British
 
-### Popular English Voices
+**Other Languages:**
+- German: `de_DE-thorsten-medium`
+- French: `fr_FR-siwis-medium`
+- Spanish: `es_ES-sharvard-medium`
+- Italian: `it_IT-riccardo-medium`
 
-**US English:**
-- `en_US-lessac-medium` - Male voice, clear and natural (default)
-- `en_US-lessac-high` - High-quality version of lessac
-- `en_US-libritts-high` - Multi-speaker, high quality
-- `en_US-ryan-medium` - Male voice, energetic
-- `en_US-amy-medium` - Female voice, clear
+See [Piper Voice Samples](https://rhasspy.github.io/piper-samples/) for the complete list.
 
-**UK English:**
-- `en_GB-alan-medium` - Male British voice
-- `en_GB-southern_english_female-medium` - Female British voice
+### Voice Storage
 
-### Other Languages
-
-**German:**
-- `de_DE-thorsten-medium` - Male German voice
-- `de_DE-karlsson-low` - Fast German voice
-
-**French:**
-- `fr_FR-siwis-medium` - Female French voice
-- `fr_FR-upmc-medium` - Male French voice
-
-**Spanish:**
-- `es_ES-sharvard-medium` - Male Spanish voice
-- `es_MX-ald-medium` - Mexican Spanish
-
-**Italian:**
-- `it_IT-riccardo-medium` - Male Italian voice
-
-**For a complete list of available voices**, visit:
-- [Piper Voice Samples](https://rhasspy.github.io/piper-samples/)
-- Voice format: `language_country-speaker-quality`
-
-### Voice Selection Guide
-
-**For Home Assistant Voice:**
-- **Recommended**: `en_US-lessac-medium` (default) - Good balance
-- **Best quality**: `en_US-lessac-high` or `en_US-libritts-high`
-- **Fastest**: `en_US-lessac-low` or any `x-low` voice
-- **Female voice**: `en_US-amy-medium`
-
-**For multi-speaker scenarios:**
-- Use `libritts` voices with `speaker` parameter to select different speakers
-- Check voice documentation for available speaker IDs
-
-## Usage
-
-### Accessing the Wyoming Service
-
-After installation, get connection details:
-
-```bash
-helm status my-piper
-```
-
-For ClusterIP service (default), port-forward to access locally:
-
-```bash
-kubectl port-forward svc/my-piper-wyoming-piper 10200:10200
-```
-
-Then connect to `tcp://localhost:10200`
-
-### Using with Home Assistant
-
-Add to your Home Assistant `configuration.yaml`:
+Voice models are automatically downloaded on first run. Enable persistent storage to avoid re-downloading:
 
 ```yaml
-wyoming:
-  - platform: piper
-    host: my-piper-wyoming-piper.default.svc.cluster.local
-    port: 10200
-```
-
-Or if exposed externally via LoadBalancer:
-
-```yaml
-wyoming:
-  - platform: piper
-    host: <EXTERNAL_IP>
-    port: 10200
+persistence:
+  enabled: true
+  size: 2Gi  # Adjust based on voice size
 ```
 
 ## Advanced Configuration
-
-### Optimizing for Home Assistant Voice
-
-For natural-sounding voice responses:
-
-```yaml
-# Use high-quality voice
-voice: en_US-lessac-high
-
-# Enable streaming for lower latency
-streaming: true
-
-# Adjust speech parameters
-lengthScale: 1.0  # 1.0 = normal speed, >1.0 = slower, <1.0 = faster
-noiseScale: 0.667  # Higher = more variable/natural
-noiseWScale: 0.333  # Adds variation to phoneme duration
-
-# Cache models for quick startup
-persistence:
-  enabled: true
-  size: 2Gi
-
-# Minimal resources for TTS
-resources:
-  limits:
-    cpu: 1000m
-    memory: 1Gi
-  requests:
-    cpu: 250m
-    memory: 512Mi
-```
 
 ### Adjusting Speech Speed
 
 Control speaking rate with `lengthScale`:
 
 ```yaml
-# Faster speech (80% speed)
-lengthScale: 0.8
-
-# Slower speech (120% speed)
-lengthScale: 1.2
-
-# Normal speed (default)
-lengthScale: 1.0
+lengthScale: 0.8  # 20% faster
+# lengthScale: 1.0  # Normal speed (default)
+# lengthScale: 1.2  # 20% slower
 ```
 
-### Using Multi-Speaker Voices
+### Multi-Speaker Voices
 
 Some voices support multiple speakers:
 
 ```yaml
-# Use libritts with specific speaker
 voice: en_US-libritts-high
 speaker: "p225"  # Female speaker
-# or
-speaker: "p226"  # Male speaker
 ```
 
-### Faster Voice Model Download
+### Resource Limits
 
-Update voices list on startup:
-
-```yaml
-updateVoices: true
-```
-
-### Debug Logging
-
-Enable debug mode for troubleshooting:
+Set appropriate resource limits:
 
 ```yaml
-debug: true
-```
-
-### Service Discovery with Zeroconf
-
-Enable automatic service discovery using zeroconf/mDNS (v2.1.0+):
-
-```yaml
-zeroconf: true
-```
-
-This allows compatible clients to automatically discover the Wyoming Piper service on the network.
-
-### Complete Home Assistant TTS Example
-
-Full configuration optimized for Home Assistant:
-
-```yaml
-# High-quality natural voice
-voice: en_US-lessac-high
-
-# Enable streaming for responsiveness
-streaming: true
-
-# Natural speech parameters
-lengthScale: 1.0
-noiseScale: 0.667
-noiseWScale: 0.333
-
-# Cache models for fast startup
-persistence:
-  enabled: true
-  size: 2Gi
-
-# Efficient resources for TTS
 resources:
   limits:
     cpu: 1000m
@@ -341,73 +126,55 @@ resources:
   requests:
     cpu: 250m
     memory: 512Mi
-
-# Internal service (accessed from Home Assistant)
-service:
-  type: ClusterIP
-  port: 10200
 ```
 
-### GPU Acceleration (Advanced - Not Typically Needed)
+### Service Discovery
 
-**Note:** GPU acceleration is typically **not needed** for Home Assistant TTS. CPU performance is sufficient for real-time speech generation.
-
-If you have specific high-throughput needs:
+Enable zeroconf/mDNS for automatic discovery:
 
 ```yaml
-# Enable CUDA (requires onnxruntime-gpu)
-useCuda: true
-
-# Request GPU resources
-resources:
-  limits:
-    nvidia.com/gpu: 1
-  requests:
-    nvidia.com/gpu: 1
-
-# Target GPU nodes
-nodeSelector:
-  gpu: "true"
+zeroconf: true
 ```
 
 ## Troubleshooting
 
-### View logs
+### View Logs
 
 ```bash
 kubectl logs -l app.kubernetes.io/name=wyoming-piper
 ```
 
-### Voice model download issues
+### Check Service Status
 
-If models are being re-downloaded on every restart:
-- Ensure `persistence.enabled: true` in your values
-- Check PVC is bound: `kubectl get pvc`
-
-### Service not responding
-
-Check pod status:
 ```bash
 kubectl get pods -l app.kubernetes.io/name=wyoming-piper
-kubectl describe pod <pod-name>
+kubectl get svc -l app.kubernetes.io/name=wyoming-piper
 ```
 
-### Testing TTS
+### Voice Models Not Persisting
 
-You can test the service using the Wyoming protocol client:
+Ensure persistence is enabled and PVC is bound:
 
 ```bash
-# Install wyoming client
-pip install wyoming
-
-# Test TTS
-echo "Hello from Piper" | \
-  wyoming-client --uri tcp://localhost:10200 --type tts
+kubectl get pvc
 ```
 
-### Audio quality issues
+### Port Forward for Testing
 
-Try adjusting voice parameters:
+```bash
+kubectl port-forward svc/piper-wyoming-piper 10200:10200
+```
+
+Then test with Wyoming client:
+
+```bash
+pip install wyoming
+echo "Hello from Piper" | wyoming-client --uri tcp://localhost:10200 --type tts
+```
+
+### Audio Quality Issues
+
+Adjust voice parameters for different characteristics:
 
 ```yaml
 # More consistent speech
@@ -420,52 +187,27 @@ noiseScale: 0.8
 lengthScale: 1.2
 ```
 
-## Uninstallation
-
-To uninstall/delete the deployment:
-
-```bash
-helm uninstall my-piper
-```
-
-To also delete the PVC:
-
-```bash
-kubectl delete pvc my-piper-wyoming-piper-data
-```
-
 ## Upgrading
 
-### To a newer chart version
-
-From OCI registry:
-
 ```bash
-helm upgrade my-piper oci://ghcr.io/mikesmitty/wyoming-piper --version 0.5.0
+helm upgrade piper oci://ghcr.io/mikesmitty/wyoming-piper
 ```
 
-From source:
+To change the voice:
 
 ```bash
-helm upgrade my-piper ./charts/wyoming-piper
-```
-
-### To change the voice
-
-From OCI registry:
-
-```bash
-helm upgrade my-piper oci://ghcr.io/mikesmitty/wyoming-piper \
+helm upgrade piper oci://ghcr.io/mikesmitty/wyoming-piper \
   --set voice=en_US-lessac-high \
   --reuse-values
 ```
 
-From source:
+## Uninstalling
 
 ```bash
-helm upgrade my-piper ./charts/wyoming-piper \
-  --set voice=en_US-lessac-high \
-  --reuse-values
+helm uninstall piper
+
+# Optionally delete the PVC
+kubectl delete pvc piper-wyoming-piper-data
 ```
 
 ## References
