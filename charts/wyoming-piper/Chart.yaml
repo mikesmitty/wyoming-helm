@@ -3,7 +3,7 @@ name: wyoming-piper
 description: A Helm chart for Wyoming Piper text-to-speech service
 type: application
 version: 0.5.1
-appVersion: "1.6.3"
+appVersion: "2.1.1"
 keywords:
   - piper
   - wyoming

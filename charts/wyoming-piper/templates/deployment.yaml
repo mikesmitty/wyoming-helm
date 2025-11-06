@@ -59,6 +59,9 @@ spec:
         {{- if .Values.updateVoices }}
         - "--update-voices"
         {{- end }}
+        {{- if .Values.zeroconf }}
+        - "--zeroconf"
+        {{- end }}
         {{- if .Values.useCuda }}
         - "--use-cuda"
         {{- end }}

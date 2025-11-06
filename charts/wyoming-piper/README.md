@@ -2,6 +2,16 @@
 
 This Helm chart deploys the [Wyoming Piper](https://github.com/rhasspy/wyoming-piper) text-to-speech service on Kubernetes. Wyoming Piper provides fast, natural-sounding text-to-speech for Home Assistant voice assistants and other Wyoming protocol applications.
 
+## What's New in v2
+
+Wyoming Piper v2 brings significant improvements:
+
+- **Better Performance** - Uses the piper1-gpl library for improved efficiency
+- **GPU Support** - Optional CUDA acceleration with `--use-cuda` flag
+- **Service Discovery** - Built-in zeroconf/mDNS discovery (v2.1.0+)
+- **Streaming by Default** - Audio streaming is now enabled by default for lower latency
+- **Improved Reliability** - Enhanced error handling and stability
+
 ## Overview
 
 This chart is optimized for **Home Assistant voice assistant** deployments with a focus on:
@@ -92,7 +102,7 @@ The following table lists the configurable parameters:
 |-----------|-------------|---------|
 | `replicaCount` | Number of replicas | `1` |
 | `image.repository` | Wyoming Piper image repository | `rhasspy/wyoming-piper` |
-| `image.tag` | Image tag | `1.6.3` |
+| `image.tag` | Image tag | `2.1.1` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `service.type` | Service type | `ClusterIP` |
 | `service.port` | Service port | `10200` |
@@ -105,6 +115,7 @@ The following table lists the configurable parameters:
 | `streaming` | Enable audio streaming | `true` |
 | `samplesPerChunk` | Samples per audio chunk | `1024` |
 | `updateVoices` | Update voices list on startup | `false` |
+| `zeroconf` | Enable zeroconf/mDNS discovery (v2.1.0+) | `false` |
 | `useCuda` | Enable CUDA GPU acceleration | `false` |
 | `debug` | Enable debug logging | `false` |
 | `extraArgs` | Additional command line arguments | `[]` |
@@ -290,6 +301,16 @@ Enable debug mode for troubleshooting:
 ```yaml
 debug: true
 ```
+
+### Service Discovery with Zeroconf
+
+Enable automatic service discovery using zeroconf/mDNS (v2.1.0+):
+
+```yaml
+zeroconf: true
+```
+
+This allows compatible clients to automatically discover the Wyoming Piper service on the network.
 
 ### Complete Home Assistant TTS Example
 
