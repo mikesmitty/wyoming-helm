@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-piper-0.5.1...wyoming-piper-v0.6.0) (2025-11-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* update wyoming-piper to v2.1.1
+
+### Features
+
+* update wyoming-piper to v2.1.1 ([caa4528](https://github.com/mikesmitty/wyoming-helm/commit/caa45280c12df276c5afa7d790aaf772b50b21f3))
+
 ## [0.5.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-piper-v0.5.0...wyoming-piper-v0.5.1) (2025-11-01)
 
 
