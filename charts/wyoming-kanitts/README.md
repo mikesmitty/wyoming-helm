@@ -1,13 +1,12 @@
 # Wyoming KaniTTS Helm Chart
 
-[KaniTTS](https://github.com/nineninesix-ai/kani-tts) is a fast, high-quality text-to-speech model that provides Wyoming protocol support for Home Assistant voice assistants. This chart deploys KaniTTS with Intel XPU (GPU) acceleration support via PyTorch.
+[KaniTTS](https://github.com/nineninesix-ai/kani-tts) is a fast, high-quality text-to-speech model that provides Wyoming protocol support for Home Assistant voice assistants. **This chart is specifically optimized for Intel GPU (XPU) acceleration.**
 
 ## Features
 
+- **Intel GPU acceleration** via native PyTorch 2.7+ XPU support
 - High-quality neural TTS with KaniTTS-370M or KaniTTS-450M models
-- Intel GPU acceleration via PyTorch XPU backend
-- NVIDIA GPU support (CUDA)
-- CPU fallback support
+- Supports Intel Arc, Iris Xe, and integrated GPUs (i915/xe drivers)
 - Wyoming protocol integration for Home Assistant
 - Persistent model storage
 - Configurable resource limits and GPU selection
@@ -17,21 +16,13 @@
 - Kubernetes 1.19+
 - Helm 3.0+
 - Persistent storage (recommended)
-- For Intel GPU acceleration:
-  - Intel GPU Device Plugin installed
-  - PyTorch 2.5+ with XPU support in container
-  - Intel GPU drivers on nodes
-- For NVIDIA GPU: NVIDIA GPU Device Plugin
+- **Intel GPU Device Plugin** installed in cluster
+- **Intel GPU drivers** on nodes (i915 or xe kernel driver)
+- Intel Arc, Iris Xe, or integrated GPU
+
+**Note:** This image is built specifically for Intel GPUs using PyTorch 2.7+ native XPU support. CUDA/NVIDIA GPUs are not supported.
 
 ## Quick Start
-
-### Basic Installation (CPU Only)
-
-```bash
-helm install kanitts oci://ghcr.io/mikesmitty/wyoming-kanitts
-```
-
-### With Intel GPU Acceleration
 
 First, ensure Intel GPU Device Plugin is installed:
 
@@ -80,24 +71,6 @@ Install the chart:
 
 ```bash
 helm install kanitts oci://ghcr.io/mikesmitty/wyoming-kanitts -f values.yaml
-```
-
-### With NVIDIA GPU
-
-```yaml
-# Use CUDA device for NVIDIA GPU acceleration
-device: "cuda"
-
-# Select KaniTTS model
-model:
-  name: "nineninesix/kani-tts-370m"
-
-# Resource allocation
-resources:
-  limits:
-    nvidia.com/gpu: 1
-  requests:
-    nvidia.com/gpu: 1
 ```
 
 ## Using with Home Assistant
@@ -153,44 +126,16 @@ model:
   name: "nineninesix/kani-tts-450m-0.1-pt"
 ```
 
-### Device Selection
+### Intel XPU Configuration
 
-The chart supports three device types:
-
-#### Intel XPU (Recommended for Intel GPUs)
+The device is configured to use Intel XPU by default:
 
 ```yaml
 device: "xpu"
 
 xpu:
-  backend: "level_zero"  # Use Level Zero for best performance
-  deviceIndex: 0         # First Intel GPU
-
-resources:
-  limits:
-    gpu.intel.com/i915: 1  # For Gen 9-12 (UHD, Iris Xe integrated)
-    # gpu.intel.com/xe: 1  # For Arc, Flex, Max (discrete/newer)
-```
-
-#### NVIDIA CUDA
-
-```yaml
-device: "cuda"
-
-resources:
-  limits:
-    nvidia.com/gpu: 1
-```
-
-#### CPU (Fallback)
-
-```yaml
-device: "cpu"
-
-resources:
-  limits:
-    cpu: 2000m
-    memory: 4Gi
+  backend: "level_zero"  # Level Zero backend for best performance
+  deviceIndex: 0         # First Intel GPU (0-indexed)
 ```
 
 ### Intel GPU Selection
@@ -403,25 +348,7 @@ If `False`, check:
 
 ## Building the Container Image
 
-The chart expects a container image that:
-1. Contains PyTorch 2.5+ with XPU support
-2. Has kani-tts Python package installed
-3. Includes a Wyoming protocol wrapper
-4. Supports Intel Extension for PyTorch (IPEX) if needed
-
-Example Dockerfile structure:
-
-```dockerfile
-FROM intel/intel-optimized-pytorch:2.5.0-xpu
-
-# Install KaniTTS and dependencies
-RUN pip install kani-tts transformers==4.57.1 wyoming
-
-# Add Wyoming wrapper script
-COPY wyoming_kanitts.py /app/
-
-ENTRYPOINT ["python3", "/app/wyoming_kanitts.py"]
-```
+See the [Docker README](docker/README.md) for information on building the container image with Intel GPU support.
 
 ## Upgrading
 
@@ -447,26 +374,26 @@ kubectl delete pvc kanitts-wyoming-kanitts-data
 |---------|----------------|----------------|---------------|
 | Quality | High | High | Good |
 | Speed | Fast | Fast | Very Fast |
-| GPU Support | Intel XPU, CUDA | Intel OpenVINO | CUDA (optional) |
+| GPU Support | Intel XPU | Intel OpenVINO | CUDA (optional) |
 | Model Size | 370M-450M | 82M | Varies |
 | Backend | PyTorch | ONNX | ONNX |
 | Memory Usage | 2-4GB | 1-2GB | 512MB-1GB |
 
 **When to use KaniTTS:**
-- You want high-quality neural TTS
-- You have Intel GPUs with XPU support
-- You prefer PyTorch over ONNX
-- You need CUDA support option
+- You want high-quality neural TTS with Intel GPU acceleration
+- You have Intel Arc, Iris Xe, or integrated GPUs (Gen 9+)
+- You prefer PyTorch 2.7+ with native XPU support
+- You need higher quality than Piper
 
 **When to use Kokoro:**
 - You want production-ready ONNX inference
-- You have older Intel GPUs (i915)
-- You prioritize stability
+- You need broader GPU compatibility
+- You prioritize stability and lower memory usage
 
 **When to use Piper:**
 - You need the fastest, lightest TTS
 - CPU-only deployment
-- Minimal resource usage
+- Minimal resource usage is critical
 
 ## References
 

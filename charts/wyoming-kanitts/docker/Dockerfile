@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 COPY pyproject.toml /app/
 
 # Install Python dependencies using UV
-# UV will automatically handle the git-based transformers dependency
+# PyTorch 2.7+ has native Intel GPU support, no extensions needed
 RUN uv pip install --system --no-cache \
     torch \
     librosa \
@@ -30,17 +30,27 @@ RUN uv pip install --system --no-cache \
     "git+https://github.com/huggingface/transformers.git" \
     && uv pip install --system --no-cache "nemo-toolkit[tts]"
 
-# Install Intel Extension for PyTorch for XPU support (optional)
-# Uncomment if building for Intel GPU
-# RUN uv pip install --system --no-cache intel-extension-for-pytorch
-
 # Runtime stage
 FROM python:3.11-slim-bookworm
 
-# Install runtime dependencies
+# Install runtime dependencies including Intel GPU compute runtime
 RUN apt-get update && apt-get install -y \
     libsndfile1 \
     ffmpeg \
+    wget \
+    gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Intel GPU compute runtime for XPU support
+# Add Intel GPU repository and install compute runtime
+RUN wget -qO - https://repositories.intel.com/gpu/intel-graphics.key | gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy client" | \
+    tee /etc/apt/sources.list.d/intel-gpu-jammy.list && \
+    apt-get update && \
+    apt-get install -y \
+    intel-opencl-icd \
+    intel-level-zero-gpu \
+    level-zero \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python packages from builder
@@ -57,11 +67,13 @@ COPY wyoming_kanitts.py /app/
 RUN mkdir -p /data/huggingface && \
     chmod 755 /app/wyoming_kanitts.py
 
-# Environment variables
+# Environment variables for Intel XPU
 ENV PYTHONUNBUFFERED=1 \
     HF_HOME=/data/huggingface \
     TRANSFORMERS_CACHE=/data/huggingface \
-    PYTORCH_DEVICE=cpu
+    PYTORCH_DEVICE=xpu \
+    ONEAPI_DEVICE_SELECTOR=level_zero:0 \
+    PYTORCH_ENABLE_XPU=1
 
 # Expose Wyoming protocol port
 EXPOSE 10220
