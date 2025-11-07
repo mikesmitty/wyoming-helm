@@ -18,7 +18,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: wyoming-helm-runner-large
     permissions:
       contents: read
       packages: write
