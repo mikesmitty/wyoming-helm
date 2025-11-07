@@ -126,7 +126,7 @@ webui:
   image:
     repository: ghcr.io/open-webui/open-webui
     # renovate: datasource=github-releases depName=open-webui/open-webui
-    tag: "0.6.34"
+    tag: "v0.6.36"
     pullPolicy: IfNotPresent
 
   service:
