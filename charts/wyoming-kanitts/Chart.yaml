@@ -3,7 +3,7 @@ name: wyoming-kanitts
 description: A Helm chart for Wyoming KaniTTS text-to-speech service with Intel XPU support
 type: application
 version: 0.1.0
-appVersion: "0.1.0"
+appVersion: 0.1.0
 keywords:
   - kanitts
   - wyoming
