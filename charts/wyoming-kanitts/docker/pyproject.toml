@@ -1,0 +1,31 @@
+[project]
+name = "wyoming-kanitts"
+version = "0.1.0"
+description = "Wyoming protocol server for KaniTTS text-to-speech"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "wyoming>=1.5.0",
+    "torch>=2.0.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+    "numpy>=1.24.0",
+    "huggingface-hub>=0.20.0",
+    "nemo-toolkit[tts]>=1.22.0",
+]
+
+[project.optional-dependencies]
+intel = [
+    "intel-extension-for-pytorch>=2.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Use UV for dependency resolution and installation
+dev-dependencies = []
+
+[tool.uv.sources]
+# Install transformers from git for LFM2 support
+transformers = { git = "https://github.com/huggingface/transformers.git" }

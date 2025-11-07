@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wyoming-kanitts.fullname" . }}
+  labels:
+    {{- include "wyoming-kanitts.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "wyoming-kanitts.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "wyoming-kanitts.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: wyoming-kanitts
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        # PyTorch device configuration
+        - name: PYTORCH_DEVICE
+          value: "{{ .Values.device }}"
+        # KaniTTS model configuration
+        - name: KANITTS_MODEL
+          value: "{{ .Values.model.name }}"
+        {{- if .Values.model.revision }}
+        - name: KANITTS_MODEL_REVISION
+          value: "{{ .Values.model.revision }}"
+        {{- end }}
+        # Model cache directory
+        - name: HF_HOME
+          value: "{{ .Values.persistence.mountPath }}/huggingface"
+        - name: TRANSFORMERS_CACHE
+          value: "{{ .Values.persistence.mountPath }}/huggingface"
+        # Intel XPU environment variables
+        {{- if eq .Values.device "xpu" }}
+        - name: ONEAPI_DEVICE_SELECTOR
+          value: "{{ .Values.xpu.backend }}:{{ .Values.xpu.deviceIndex }}"
+        - name: PYTORCH_ENABLE_XPU
+          value: "{{ .Values.env.PYTORCH_ENABLE_XPU }}"
+        {{- end }}
+        # Additional environment variables from values
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        args:
+        - "--uri"
+        - "tcp://0.0.0.0:{{ .Values.service.port }}"
+        {{- if .Values.wyoming.debug }}
+        - "--debug"
+        {{- end }}
+        {{- with .Values.wyoming.extraArgs }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+        - name: wyoming
+          containerPort: {{ .Values.service.port }}
+          protocol: TCP
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.livenessProbe.tcpSocket.port }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.readinessProbe.tcpSocket.port }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+        {{- end }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          mountPath: {{ .Values.persistence.mountPath }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (printf "%s-data" (include "wyoming-kanitts.fullname" .)) }}
+      {{- end }}

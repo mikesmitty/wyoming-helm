@@ -1,0 +1,151 @@
+replicaCount: 1
+
+# Deployment strategy
+strategy:
+  type: Recreate
+
+image:
+  repository: ghcr.io/mikesmitty/wyoming-kanitts
+  tag: ""
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 10220
+
+# KaniTTS model configuration
+model:
+  # Model name to download from Hugging Face
+  # Options: "nineninesix/kani-tts-370m", "nineninesix/kani-tts-450m-0.1-pt"
+  name: "nineninesix/kani-tts-370m"
+
+  # Model revision/branch (optional)
+  revision: "main"
+
+# PyTorch device configuration
+# Options: "xpu" (Intel GPU), "cuda" (NVIDIA GPU), "cpu"
+device: "xpu"
+
+# Intel XPU configuration
+# Only applies when device="xpu"
+xpu:
+  # SYCL device selector - use level_zero for Intel GPUs
+  # Options: "level_zero", "opencl"
+  backend: "level_zero"
+
+  # Device index (0 for first Intel GPU)
+  deviceIndex: 0
+
+# Environment variables for Intel GPU optimization
+env:
+  # OneAPI device selector
+  ONEAPI_DEVICE_SELECTOR: "level_zero:0"
+  # Enable XPU device
+  PYTORCH_ENABLE_XPU: "1"
+
+# Additional environment variables
+extraEnv: []
+# Example:
+# extraEnv:
+#   - name: CUSTOM_VAR
+#     value: "custom_value"
+
+# Wyoming protocol configuration
+wyoming:
+  # Enable debug logging for troubleshooting
+  debug: false
+
+  # Additional command line arguments for Wyoming server
+  extraArgs: []
+  # Example:
+  # extraArgs:
+  #   - "--log-format"
+  #   - "json"
+
+# Persistent storage for KaniTTS models
+# Recommended to avoid re-downloading models on restart
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  mountPath: /data
+  # Use an existing claim
+  existingClaim: ""
+
+# Resource limits and requests
+# For Intel GPU acceleration, add gpu.intel.com/i915 or gpu.intel.com/xe resource
+# This requires the Intel GPU Device Plugin to be installed on your cluster
+# See: https://github.com/intel/intel-device-plugins-for-kubernetes
+resources: {}
+  # limits:
+  #   cpu: 2000m
+  #   memory: 4Gi
+  #   gpu.intel.com/i915: 1  # For older Intel GPUs (Gen 9-12)
+  #   # gpu.intel.com/xe: 1  # For newer Intel GPUs (Arc, Flex, Max)
+  # requests:
+  #   cpu: 500m
+  #   memory: 2Gi
+  #   gpu.intel.com/i915: 1
+
+# Security context for the container
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Liveness probe configuration
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: wyoming
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Node selector for pod assignment
+nodeSelector: {}
+# Example: Schedule on nodes with Intel GPU (requires NFD operator)
+# nodeSelector:
+#   intel.feature.node.kubernetes.io/gpu: "true"
+
+# Tolerations for pod assignment
+tolerations: []
+# Example:
+# tolerations:
+#   - key: "gpu"
+#     operator: "Equal"
+#     value: "intel"
+#     effect: "NoSchedule"
+
+# Affinity for pod assignment
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Name overrides
+nameOverride: ""
+fullnameOverride: ""

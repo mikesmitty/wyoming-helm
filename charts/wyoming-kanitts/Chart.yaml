@@ -1,0 +1,20 @@
+apiVersion: v2
+name: wyoming-kanitts
+description: A Helm chart for Wyoming KaniTTS text-to-speech service with Intel XPU support
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - kanitts
+  - wyoming
+  - text-to-speech
+  - tts
+  - home-assistant
+  - intel-gpu
+  - pytorch
+  - xpu
+maintainers:
+  - name: mikesmitty
+sources:
+  - https://github.com/nineninesix-ai/kani-tts
+  - https://github.com/rhasspy/wyoming

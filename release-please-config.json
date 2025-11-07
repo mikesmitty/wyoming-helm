@@ -34,6 +34,25 @@
     "charts/ollama-intel": {
       "release-type": "helm",
       "package-name": "ollama-intel"
+    },
+    "charts/wyoming-kanitts": {
+      "release-type": "helm",
+      "package-name": "wyoming-kanitts",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "docker/Dockerfile"
+        },
+        {
+          "type": "generic",
+          "path": "docker/wyoming_kanitts.py"
+        },
+        {
+          "type": "yaml",
+          "path": "Chart.yaml",
+          "jsonpath": "$.appVersion"
+        }
+      ]
     }
   }
 }
