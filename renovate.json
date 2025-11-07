@@ -18,5 +18,6 @@
       ],
       "versioningTemplate": "semver"
     }
-  ]
+  ],
+  "minimumReleaseAge": "10 minutes"
 }
