@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-0.4.1...ollama-intel-v0.4.2) (2025-11-07)
+
+
+### Bug Fixes
+
+* Update ghcr.io/open-webui/open-webui Docker tag to v0.6.36 ([#48](https://github.com/mikesmitty/wyoming-helm/issues/48)) ([c74da20](https://github.com/mikesmitty/wyoming-helm/commit/c74da20cd87aaeb2bd4112fb48c62be0345cc95f))
+
 ## [0.4.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.4.0...ollama-intel-v0.4.1) (2025-11-06)
 
 
