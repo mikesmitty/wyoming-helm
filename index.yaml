@@ -532,6 +532,31 @@ entries:
     version: 0.1.0
   wyoming-kanitts:
   - apiVersion: v2
+    appVersion: 0.2.0
+    created: "2025-11-08T06:57:26.587822784Z"
+    description: A Helm chart for Wyoming KaniTTS text-to-speech service with Intel
+      XPU support
+    digest: 1937b2ded6e550b021491c5c42ec2f6d39c35356f2ed98dc898b69003a22ace7
+    keywords:
+    - kanitts
+    - wyoming
+    - text-to-speech
+    - tts
+    - home-assistant
+    - intel-gpu
+    - pytorch
+    - xpu
+    maintainers:
+    - name: mikesmitty
+    name: wyoming-kanitts
+    sources:
+    - https://github.com/nineninesix-ai/kani-tts
+    - https://github.com/rhasspy/wyoming
+    type: application
+    urls:
+    - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-kanitts-0.2.0/wyoming-kanitts-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     appVersion: 0.1.0
     created: "2025-11-07T00:50:05.967587766Z"
     description: A Helm chart for Wyoming KaniTTS text-to-speech service with Intel
@@ -772,4 +797,4 @@ entries:
     urls:
     - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-whisper-0.5.0/wyoming-whisper-0.5.0.tgz
     version: 0.5.0
-generated: "2025-11-08T06:50:56.781266475Z"
+generated: "2025-11-08T06:57:26.587875963Z"
