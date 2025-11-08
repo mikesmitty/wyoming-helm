@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.3](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-v0.6.2...wyoming-whisper-v0.6.3) (2025-11-08)
+
+
+### Bug Fixes
+
+* Update rhasspy/wyoming-whisper Docker tag to v3.0.2 ([#56](https://github.com/mikesmitty/wyoming-helm/issues/56)) ([9871c99](https://github.com/mikesmitty/wyoming-helm/commit/9871c99dee7859f527c0a6c182f1e8450e3431ac))
+
 ## [0.6.2](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-v0.6.1...wyoming-whisper-v0.6.2) (2025-11-01)
 
 
