@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-piper-0.6.0...wyoming-piper-v0.6.1) (2025-11-08)
+
+
+### Bug Fixes
+
+* Update rhasspy/wyoming-piper Docker tag to v2.1.2 ([#55](https://github.com/mikesmitty/wyoming-helm/issues/55)) ([cb187a4](https://github.com/mikesmitty/wyoming-helm/commit/cb187a4a998ab2ae2e785649fbcf508fc861ab45))
+
 ## [0.6.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-piper-0.5.1...wyoming-piper-v0.6.0) (2025-11-06)
 
 
