@@ -648,6 +648,27 @@ entries:
   wyoming-whisper:
   - apiVersion: v2
     appVersion: 3.0.0
+    created: "2025-11-08T06:50:56.781178111Z"
+    description: A Helm chart for Wyoming Whisper speech-to-text service
+    digest: dbe16f42bda757ad66e48952c87b46eacffe04cfcc081026ea5d3cbc011d6222
+    keywords:
+    - whisper
+    - wyoming
+    - speech-to-text
+    - home-assistant
+    - rhasspy
+    maintainers:
+    - name: mikesmitty
+    name: wyoming-whisper
+    sources:
+    - https://github.com/rhasspy/wyoming-whisper
+    - https://github.com/openai/whisper
+    type: application
+    urls:
+    - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-whisper-0.6.3/wyoming-whisper-0.6.3.tgz
+    version: 0.6.3
+  - apiVersion: v2
+    appVersion: 3.0.0
     created: "2025-11-01T21:35:31.400057923Z"
     description: A Helm chart for Wyoming Whisper speech-to-text service
     digest: 0dce3962cb35af6e0cde10f243fc00493772b04d28c86208628987067144d8eb
@@ -751,4 +772,4 @@ entries:
     urls:
     - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-whisper-0.5.0/wyoming-whisper-0.5.0.tgz
     version: 0.5.0
-generated: "2025-11-08T06:48:02.170626856Z"
+generated: "2025-11-08T06:50:56.781266475Z"
