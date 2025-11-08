@@ -7,7 +7,7 @@
 ### Install from OCI Registry
 
 ```bash
-helm install piper oci://ghcr.io/mikesmitty/wyoming-piper
+helm install piper oci://ghcr.io/mikesmitty/charts/wyoming-piper
 ```
 
 ### Install with Custom Configuration
@@ -27,7 +27,7 @@ persistence:
 Install the chart:
 
 ```bash
-helm install piper oci://ghcr.io/mikesmitty/wyoming-piper -f values.yaml
+helm install piper oci://ghcr.io/mikesmitty/charts/wyoming-piper -f values.yaml
 ```
 
 ## Using with Home Assistant
@@ -190,13 +190,13 @@ lengthScale: 1.2
 ## Upgrading
 
 ```bash
-helm upgrade piper oci://ghcr.io/mikesmitty/wyoming-piper
+helm upgrade piper oci://ghcr.io/mikesmitty/charts/wyoming-piper
 ```
 
 To change the voice:
 
 ```bash
-helm upgrade piper oci://ghcr.io/mikesmitty/wyoming-piper \
+helm upgrade piper oci://ghcr.io/mikesmitty/charts/wyoming-piper \
   --set voice=en_US-lessac-high \
   --reuse-values
 ```

@@ -7,7 +7,7 @@
 ### Install from OCI Registry
 
 ```bash
-helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper
+helm install whisper oci://ghcr.io/mikesmitty/charts/wyoming-whisper
 ```
 
 ### Install with Custom Configuration
@@ -27,7 +27,7 @@ persistence:
 Install the chart:
 
 ```bash
-helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper -f values.yaml
+helm install whisper oci://ghcr.io/mikesmitty/charts/wyoming-whisper -f values.yaml
 ```
 
 ## Using with Home Assistant
@@ -187,7 +187,7 @@ echo "Hello world" | wyoming-client --uri tcp://localhost:10300
 ## Upgrading
 
 ```bash
-helm upgrade whisper oci://ghcr.io/mikesmitty/wyoming-whisper
+helm upgrade whisper oci://ghcr.io/mikesmitty/charts/wyoming-whisper
 ```
 
 ## Uninstalling

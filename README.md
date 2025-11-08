@@ -9,7 +9,7 @@ All charts are published to GitHub Container Registry (GHCR) as OCI artifacts.
 ### Wyoming Whisper - Speech-to-Text
 Fast, accurate speech recognition for Home Assistant voice assistants.
 
-- **Chart**: `oci://ghcr.io/mikesmitty/wyoming-whisper`
+- **Chart**: `oci://ghcr.io/mikesmitty/charts/wyoming-whisper`
 - **Source**: `charts/wyoming-whisper`
 - **Image**: `rhasspy/wyoming-whisper`
 - **Default Port**: 10300
@@ -21,7 +21,7 @@ Fast, accurate speech recognition for Home Assistant voice assistants.
 ### Wyoming Piper - Text-to-Speech
 Natural-sounding text-to-speech for Home Assistant voice responses.
 
-- **Chart**: `oci://ghcr.io/mikesmitty/wyoming-piper`
+- **Chart**: `oci://ghcr.io/mikesmitty/charts/wyoming-piper`
 - **Source**: `charts/wyoming-piper`
 - **Image**: `rhasspy/wyoming-piper`
 - **Default Port**: 10200
@@ -33,9 +33,9 @@ Natural-sounding text-to-speech for Home Assistant voice responses.
 ### Kokoro Wyoming - High-Quality TTS
 Neural text-to-speech with Intel GPU acceleration support.
 
-- **Chart**: `oci://ghcr.io/mikesmitty/kokoro-wyoming`
+- **Chart**: `oci://ghcr.io/mikesmitty/charts/kokoro-wyoming`
 - **Source**: `charts/kokoro-wyoming`
-- **Image**: `ghcr.io/mikesmitty/kokoro-wyoming`
+- **Image**: `ghcr.io/mikesmitty/kokoro-wyoming-tts`
 - **Default Port**: 10210
 - **Use Case**: High-quality TTS, Intel GPU acceleration
 - **Recommended Provider**: `OpenVINOExecutionProvider` (Intel GPU/CPU)
@@ -50,26 +50,26 @@ Install charts for a complete voice assistant:
 
 ```bash
 # Install speech-to-text (Whisper)
-helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper
+helm install whisper oci://ghcr.io/mikesmitty/charts/wyoming-whisper
 
 # Install text-to-speech (Piper - fast, lightweight)
-helm install piper oci://ghcr.io/mikesmitty/wyoming-piper
+helm install piper oci://ghcr.io/mikesmitty/charts/wyoming-piper
 
 # OR install Kokoro TTS (high quality, Intel GPU support)
-helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming
+helm install kokoro oci://ghcr.io/mikesmitty/charts/kokoro-wyoming
 ```
 
 Install specific versions:
 
 ```bash
 # Install Whisper with specific version
-helm install whisper oci://ghcr.io/mikesmitty/wyoming-whisper --version 0.5.0
+helm install whisper oci://ghcr.io/mikesmitty/charts/wyoming-whisper --version 0.5.0
 
 # Install Piper with specific version
-helm install piper oci://ghcr.io/mikesmitty/wyoming-piper --version 0.5.0
+helm install piper oci://ghcr.io/mikesmitty/charts/wyoming-piper --version 0.5.0
 
 # Install Kokoro with specific version
-helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming --version 0.5.0
+helm install kokoro oci://ghcr.io/mikesmitty/charts/kokoro-wyoming --version 0.5.0
 ```
 
 ### Install from Source
@@ -188,34 +188,34 @@ This repository uses [Release Please](https://github.com/googleapis/release-plea
 
 Browse published charts on GitHub Container Registry:
 
-- **Whisper**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/wyoming-whisper
-- **Piper**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/wyoming-piper
-- **Kokoro**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/kokoro-wyoming
+- **Whisper**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/charts%2Fwyoming-whisper
+- **Piper**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/charts%2Fwyoming-piper
+- **Kokoro**: https://github.com/mikesmitty/wyoming-helm/pkgs/container/charts%2Fkokoro-wyoming
 
 Or use Helm to show available versions:
 
 ```bash
 # Show Wyoming Whisper versions
-helm show chart oci://ghcr.io/mikesmitty/wyoming-whisper
+helm show chart oci://ghcr.io/mikesmitty/charts/wyoming-whisper
 
 # Show Wyoming Piper versions
-helm show chart oci://ghcr.io/mikesmitty/wyoming-piper
+helm show chart oci://ghcr.io/mikesmitty/charts/wyoming-piper
 
 # Show Kokoro Wyoming versions
-helm show chart oci://ghcr.io/mikesmitty/kokoro-wyoming
+helm show chart oci://ghcr.io/mikesmitty/charts/kokoro-wyoming
 ```
 
 View chart values before installing:
 
 ```bash
 # Show default values for Wyoming Whisper
-helm show values oci://ghcr.io/mikesmitty/wyoming-whisper
+helm show values oci://ghcr.io/mikesmitty/charts/wyoming-whisper
 
 # Show default values for Wyoming Piper
-helm show values oci://ghcr.io/mikesmitty/wyoming-piper
+helm show values oci://ghcr.io/mikesmitty/charts/wyoming-piper
 
 # Show default values for Kokoro Wyoming
-helm show values oci://ghcr.io/mikesmitty/kokoro-wyoming
+helm show values oci://ghcr.io/mikesmitty/charts/kokoro-wyoming
 ```
 
 ## Development

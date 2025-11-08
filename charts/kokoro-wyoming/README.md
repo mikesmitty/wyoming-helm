@@ -21,7 +21,7 @@
 ### Basic Installation (CPU Only)
 
 ```bash
-helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming
+helm install kokoro oci://ghcr.io/mikesmitty/charts/kokoro-wyoming
 ```
 
 ### With Intel GPU Acceleration
@@ -61,7 +61,7 @@ nodeSelector:
 Install the chart:
 
 ```bash
-helm install kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming -f values.yaml
+helm install kokoro oci://ghcr.io/mikesmitty/charts/kokoro-wyoming -f values.yaml
 ```
 
 ## Using with Home Assistant
@@ -273,7 +273,7 @@ echo "Hello from Kokoro" | wyoming-client --uri tcp://localhost:10210 --type tts
 ## Upgrading
 
 ```bash
-helm upgrade kokoro oci://ghcr.io/mikesmitty/kokoro-wyoming
+helm upgrade kokoro oci://ghcr.io/mikesmitty/charts/kokoro-wyoming
 ```
 
 ## Uninstalling

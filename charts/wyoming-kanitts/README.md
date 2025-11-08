@@ -70,7 +70,7 @@ nodeSelector:
 Install the chart:
 
 ```bash
-helm install kanitts oci://ghcr.io/mikesmitty/wyoming-kanitts -f values.yaml
+helm install kanitts oci://ghcr.io/mikesmitty/charts/wyoming-kanitts -f values.yaml
 ```
 
 ## Using with Home Assistant
@@ -353,7 +353,7 @@ See the [Docker README](docker/README.md) for information on building the contai
 ## Upgrading
 
 ```bash
-helm upgrade kanitts oci://ghcr.io/mikesmitty/wyoming-kanitts
+helm upgrade kanitts oci://ghcr.io/mikesmitty/charts/wyoming-kanitts
 ```
 
 ## Uninstalling

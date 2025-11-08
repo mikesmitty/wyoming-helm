@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: mikesmitty/kokoro-wyoming-tts
+  IMAGE_NAME: mikesmitty/kokoro-wyoming
 
 jobs:
   build-and-push:

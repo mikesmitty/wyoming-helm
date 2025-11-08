@@ -22,7 +22,7 @@
 ### Basic Installation (CPU Only)
 
 ```bash
-helm install ollama oci://ghcr.io/mikesmitty/ollama-intel
+helm install ollama oci://ghcr.io/mikesmitty/charts/ollama-intel
 ```
 
 ### With Intel GPU Acceleration
@@ -56,7 +56,7 @@ ollama:
 Install the chart:
 
 ```bash
-helm install ollama oci://ghcr.io/mikesmitty/ollama-intel -f values.yaml
+helm install ollama oci://ghcr.io/mikesmitty/charts/ollama-intel -f values.yaml
 ```
 
 ### With Ingress
@@ -286,7 +286,7 @@ kubectl exec deployment/ollama-webui -- env | grep OLLAMA_BASE_URL
 ## Upgrading
 
 ```bash
-helm upgrade ollama oci://ghcr.io/mikesmitty/ollama-intel
+helm upgrade ollama oci://ghcr.io/mikesmitty/charts/ollama-intel
 ```
 
 ## Uninstalling
