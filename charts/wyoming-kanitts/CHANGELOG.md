@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-kanitts-v0.1.0...wyoming-kanitts-v0.2.0) (2025-11-08)
+
+
+### Features
+
+* make kanitts image actually work ([51bfcca](https://github.com/mikesmitty/wyoming-helm/commit/51bfccaae2bf49b6f2c99396f249f896cfa7dfc1))
+
+
+### Bug Fixes
+
+* remove focus on cuda usage ([a4033d1](https://github.com/mikesmitty/wyoming-helm/commit/a4033d10fbe72491f0bb9d13ae6b498b4743bf9c))
+
 ## 0.1.0 (2025-11-07)
 
 

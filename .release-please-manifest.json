@@ -3,5 +3,5 @@
     "charts/wyoming-piper": "0.6.1",
     "charts/kokoro-wyoming": "0.6.4",
     "charts/ollama-intel": "0.4.3",
-    "charts/wyoming-kanitts": "0.1.0"
+    "charts/wyoming-kanitts": "0.2.0"
 }
