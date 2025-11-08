@@ -2,15 +2,18 @@
 name = "wyoming-kanitts"
 version = "0.1.0"
 description = "Wyoming protocol server for KaniTTS text-to-speech"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10"
 dependencies = [
     "wyoming>=1.5.0",
-    "torch",
+    "torch>=2.5.0",
+    "pytorch-triton-xpu; sys_platform == 'linux' or sys_platform == 'win32'",
+    "kani-tts>=0.0.4",
     "librosa>=0.10.0",
     "soundfile>=0.12.0",
     "numpy>=1.24.0",
     "huggingface-hub>=0.20.0",
     "nemo-toolkit[tts]>=1.22.0",
+    "transformers[torch]>=4.54.0",
 ]
 
 [build-system]
@@ -20,6 +23,29 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = []
 
+[tool.uv]
+override-dependencies = [
+  "transformers>=4.54.0",
+  "nemo-toolkit[tts]>=2.5.0",
+]
+
 [tool.uv.sources]
-# Install transformers from git for LFM2 support
-transformers = { git = "https://github.com/huggingface/transformers.git" }
+torch = [
+  { index = "pytorch-xpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+# Intel GPU support relies on `pytorch-triton-xpu`, which should also be installed from the PyTorch index
+# (and included in `project.dependencies`).
+pytorch-triton-xpu = [
+  { index = "pytorch-xpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-xpu"
+url = "https://download.pytorch.org/whl/xpu"
+explicit = true
+
+[tool.uv.workspace]
+members = [
+    "3.12",
+    "deleteme",
+]

@@ -6,7 +6,6 @@ import asyncio
 import logging
 import os
 import sys
-import wave
 from functools import partial
 from pathlib import Path
 from typing import Optional
@@ -14,32 +13,46 @@ from typing import Optional
 import torch
 import numpy as np
 
-from wyoming.info import Attribution, Info, TtsProgram, TtsVoice
-from wyoming.server import AsyncServer
-from wyoming.tts import Synthesize, SynthesizeResponse
+from wyoming.info import Attribution, Describe, Info, TtsProgram, TtsVoice
+from wyoming.server import AsyncServer, AsyncEventHandler
+from wyoming.tts import Synthesize
+from wyoming.audio import AudioChunk, AudioStop
 
 _LOGGER = logging.getLogger(__name__)
+
+VERSION = "0.1.0"  # x-release-please-version
 
 # Will be imported after torch device is configured
 KaniTTS = None
 
+# Shared model instance across all handlers
+_shared_model = None
+_model_lock = asyncio.Lock()
 
-class KaniTTSEventHandler:
+
+class KaniTTSEventHandler(AsyncEventHandler):
     """Event handler for Wyoming protocol TTS requests."""
 
     def __init__(
         self,
+        wyoming_info: Info,
         model_name: str,
         device: str = "cpu",
-        sample_rate: int = 24000,
+        sample_rate: int = 22050,
+        *args,
+        **kwargs
     ):
         """Initialize the event handler.
 
         Args:
+            wyoming_info: Wyoming server info
             model_name: Hugging Face model name (e.g., "nineninesix/kani-tts-370m")
             device: PyTorch device ("cpu", "cuda", "xpu")
             sample_rate: Audio sample rate in Hz
         """
+        super().__init__(*args, **kwargs)
+
+        self.wyoming_info_event = wyoming_info.event()
         self.model_name = model_name
         self.device = device
         self.sample_rate = sample_rate
@@ -48,31 +61,35 @@ class KaniTTSEventHandler:
         _LOGGER.info("Initializing KaniTTS with model: %s on device: %s", model_name, device)
 
     async def load_model(self):
-        """Load the KaniTTS model asynchronously."""
-        if self.model is not None:
-            return
+        """Load the KaniTTS model asynchronously (shared across all handlers)."""
+        global _shared_model, KaniTTS
 
-        _LOGGER.info("Loading KaniTTS model...")
+        async with _model_lock:
+            if _shared_model is not None:
+                self.model = _shared_model
+                return
 
-        # Import KaniTTS after device configuration
-        global KaniTTS
-        if KaniTTS is None:
-            try:
-                from kani_tts import KaniTTS as KaniTTSModel
-                KaniTTS = KaniTTSModel
-            except ImportError as err:
-                _LOGGER.error("Failed to import KaniTTS: %s", err)
-                _LOGGER.error("Make sure kani-tts is installed: pip install kani-tts")
-                raise
+            _LOGGER.info("Loading KaniTTS model...")
 
-        # Load model on the specified device
-        loop = asyncio.get_event_loop()
-        self.model = await loop.run_in_executor(
-            None,
-            lambda: KaniTTS(self.model_name).to(self.device)
-        )
+            # Import KaniTTS after device configuration
+            if KaniTTS is None:
+                try:
+                    from kani_tts import KaniTTS as KaniTTSModel
+                    KaniTTS = KaniTTSModel
+                except ImportError as err:
+                    _LOGGER.error("Failed to import KaniTTS: %s", err)
+                    _LOGGER.error("Make sure kani-tts is installed: pip install kani-tts")
+                    raise
 
-        _LOGGER.info("KaniTTS model loaded successfully")
+            # Load model - KaniTTS handles device internally
+            loop = asyncio.get_event_loop()
+            _shared_model = await loop.run_in_executor(
+                None,
+                lambda: KaniTTS(self.model_name)
+            )
+            self.model = _shared_model
+
+            _LOGGER.info("KaniTTS model loaded successfully")
 
     async def handle_event(self, event) -> bool:
         """Handle a Wyoming protocol event.
@@ -83,8 +100,14 @@ class KaniTTSEventHandler:
         Returns:
             True if event was handled, False otherwise
         """
+        if Describe.is_type(event.type):
+            await self.write_event(self.wyoming_info_event)
+            _LOGGER.debug("Sent info")
+            return True
+
         if Synthesize.is_type(event.type):
-            return await self.handle_synthesize(event)
+            synthesize = Synthesize.from_event(event)
+            return await self.handle_synthesize(synthesize)
 
         return True
 
@@ -105,23 +128,31 @@ class KaniTTSEventHandler:
         try:
             # Generate audio
             loop = asyncio.get_event_loop()
+            # Use voice name as speaker (e.g., "david", "jenny")
+            speaker = None
+            if hasattr(synthesize, 'voice') and synthesize.voice:
+                speaker = synthesize.voice.name if hasattr(synthesize.voice, 'name') else str(synthesize.voice)
             audio_array = await loop.run_in_executor(
                 None,
-                lambda: self._generate_audio(synthesize.text)
+                lambda: self._generate_audio(synthesize.text, speaker)
             )
 
-            # Convert to 16-bit PCM WAV format
-            wav_data = self._create_wav(audio_array)
+            # Convert to 16-bit PCM
+            audio_int16 = (audio_array * 32767).astype(np.int16)
+            audio_bytes = audio_int16.tobytes()
 
-            # Send response
+            # Send audio chunk
             await self.write_event(
-                SynthesizeResponse(
+                AudioChunk(
                     rate=self.sample_rate,
                     width=2,  # 16-bit
                     channels=1,  # mono
-                    audio=wav_data,
+                    audio=audio_bytes,
                 ).event()
             )
+
+            # Send stop event
+            await self.write_event(AudioStop().event())
 
             _LOGGER.debug("Synthesis complete")
 
@@ -131,58 +162,35 @@ class KaniTTSEventHandler:
 
         return True
 
-    def _generate_audio(self, text: str) -> np.ndarray:
+    def _generate_audio(self, text: str, speaker: Optional[str] = None) -> np.ndarray:
         """Generate audio from text using KaniTTS.
 
         Args:
             text: Text to synthesize
+            speaker: Optional speaker name (e.g., "david", "jenny")
 
         Returns:
             Audio array as numpy array
         """
-        with torch.no_grad():
-            # KaniTTS generates audio - adjust based on actual API
-            # This is a placeholder that needs to match the real KaniTTS API
-            audio = self.model.generate(text, sample_rate=self.sample_rate)
+        # KaniTTS API: audio, text = model(text, speaker_id=speaker_name)
+        # Returns audio as numpy array at 22kHz
+        if speaker:
+            audio, _ = self.model(text, speaker_id=speaker)
+            _LOGGER.debug("Generated audio with speaker: %s", speaker)
+        else:
+            audio, _ = self.model(text)
+            _LOGGER.debug("Generated audio with default speaker")
 
-            # Convert to numpy array if needed
-            if isinstance(audio, torch.Tensor):
-                audio = audio.cpu().numpy()
+        # Ensure float32 range [-1, 1]
+        if audio.dtype != np.float32:
+            audio = audio.astype(np.float32)
 
-            # Ensure float32 range [-1, 1]
-            if audio.dtype != np.float32:
-                audio = audio.astype(np.float32)
-
-            # Normalize if needed
-            max_val = np.abs(audio).max()
-            if max_val > 1.0:
-                audio = audio / max_val
+        # Normalize if needed
+        max_val = np.abs(audio).max()
+        if max_val > 1.0:
+            audio = audio / max_val
 
         return audio
-
-    def _create_wav(self, audio_array: np.ndarray) -> bytes:
-        """Convert audio array to WAV bytes.
-
-        Args:
-            audio_array: Audio data as float32 numpy array
-
-        Returns:
-            WAV file as bytes
-        """
-        # Convert float32 [-1, 1] to int16
-        audio_int16 = (audio_array * 32767).astype(np.int16)
-
-        # Create WAV file in memory
-        import io
-        wav_io = io.BytesIO()
-
-        with wave.open(wav_io, "wb") as wav_file:
-            wav_file.setnchannels(1)  # mono
-            wav_file.setsampwidth(2)  # 16-bit
-            wav_file.setframerate(self.sample_rate)
-            wav_file.writeframes(audio_int16.tobytes())
-
-        return wav_io.getvalue()
 
 
 async def main():
@@ -207,8 +215,8 @@ async def main():
     parser.add_argument(
         "--sample-rate",
         type=int,
-        default=24000,
-        help="Audio sample rate in Hz",
+        default=22050,
+        help="Audio sample rate in Hz (KaniTTS generates 22kHz audio)",
     )
     parser.add_argument(
         "--debug",
@@ -231,18 +239,13 @@ async def main():
 
     # Configure PyTorch device
     if args.device == "xpu":
-        # Enable Intel XPU
-        try:
-            import intel_extension_for_pytorch as ipex
-            _LOGGER.info("Intel Extension for PyTorch loaded")
-        except ImportError:
-            _LOGGER.warning("intel_extension_for_pytorch not found, XPU may not work")
-
+        # Check for Intel XPU (native PyTorch 2.7+ support)
         if not torch.xpu.is_available():
-            _LOGGER.error("XPU device not available")
+            _LOGGER.error("XPU device not available. Ensure Intel GPU drivers and compute runtime are installed.")
+            _LOGGER.error("PyTorch version: %s", torch.__version__)
             sys.exit(1)
 
-        _LOGGER.info("XPU devices: %d", torch.xpu.device_count())
+        _LOGGER.info("XPU devices available: %d", torch.xpu.device_count())
 
     elif args.device == "cuda":
         if not torch.cuda.is_available():
@@ -262,38 +265,139 @@ async def main():
                     url="https://github.com/nineninesix-ai/kani-tts",
                 ),
                 installed=True,
+                version=VERSION,
                 voices=[
                     TtsVoice(
-                        name="default",
-                        description="KaniTTS default voice",
+                        name="david",
+                        description="David (Male, English)",
                         attribution=Attribution(
                             name="NineNineSix",
                             url="https://github.com/nineninesix-ai/kani-tts",
                         ),
                         installed=True,
-                        languages=["en"],  # Adjust based on model capabilities
-                    )
+                        version=None,
+                        languages=["en"],
+                    ),
+                    TtsVoice(
+                        name="jenny",
+                        description="Jenny (Female, English)",
+                        attribution=Attribution(
+                            name="NineNineSix",
+                            url="https://github.com/nineninesix-ai/kani-tts",
+                        ),
+                        installed=True,
+                        version=None,
+                        languages=["en"],
+                    ),
+                    TtsVoice(
+                        name="katie",
+                        description="Katie (Female, English)",
+                        attribution=Attribution(
+                            name="NineNineSix",
+                            url="https://github.com/nineninesix-ai/kani-tts",
+                        ),
+                        installed=True,
+                        version=None,
+                        languages=["en"],
+                    ),
+                    TtsVoice(
+                        name="andrew",
+                        description="Andrew (Male, English)",
+                        attribution=Attribution(
+                            name="NineNineSix",
+                            url="https://github.com/nineninesix-ai/kani-tts",
+                        ),
+                        installed=True,
+                        version=None,
+                        languages=["en"],
+                    ),
+                    TtsVoice(
+                        name="simon",
+                        description="Simon (Male, English)",
+                        attribution=Attribution(
+                            name="NineNineSix",
+                            url="https://github.com/nineninesix-ai/kani-tts",
+                        ),
+                        installed=True,
+                        version=None,
+                        languages=["en"],
+                    ),
+                    TtsVoice(
+                        name="puck",
+                        description="Puck (Male, English)",
+                        attribution=Attribution(
+                            name="NineNineSix",
+                            url="https://github.com/nineninesix-ai/kani-tts",
+                        ),
+                        installed=True,
+                        version=None,
+                        languages=["en"],
+                    ),
                 ],
             )
         ],
     )
 
-    # Create event handler
-    event_handler = KaniTTSEventHandler(
-        model_name=args.model,
-        device=args.device,
-        sample_rate=args.sample_rate,
+    # Preload the model before starting the server
+    _LOGGER.info("Preloading KaniTTS model...")
+    global _shared_model, KaniTTS
+
+    if KaniTTS is None:
+        try:
+            from kani_tts import KaniTTS as KaniTTSModel
+            KaniTTS = KaniTTSModel
+        except ImportError as err:
+            _LOGGER.error("Failed to import KaniTTS: %s", err)
+            _LOGGER.error("Make sure kani-tts is installed: pip install kani-tts")
+            sys.exit(1)
+
+    # Set PyTorch default device to XPU if requested
+    if args.device == "xpu":
+        torch.set_default_device("xpu")
+        _LOGGER.info("Set PyTorch default device to XPU")
+    elif args.device == "cuda":
+        torch.set_default_device("cuda")
+        _LOGGER.info("Set PyTorch default device to CUDA")
+
+    # Load model synchronously at startup
+    loop = asyncio.get_event_loop()
+    _shared_model = await loop.run_in_executor(
+        None,
+        lambda: KaniTTS(args.model)
     )
 
-    # Pre-load model
-    await event_handler.load_model()
+    # Check what device the model actually ended up on
+    try:
+        # Try to find model parameters and check their device
+        if hasattr(_shared_model, 'model'):
+            # Get first parameter to check device
+            first_param = next(_shared_model.model.parameters(), None)
+            if first_param is not None:
+                _LOGGER.info("Model weights are on device: %s", first_param.device)
+            else:
+                _LOGGER.info("Model has no parameters to check")
+        else:
+            _LOGGER.info("Cannot access internal model to check device")
+    except Exception as e:
+        _LOGGER.warning("Could not determine model device: %s", e)
+
+    _LOGGER.info("Model loaded and ready")
 
     # Start server
     server = AsyncServer.from_uri(args.uri)
 
     _LOGGER.info("Server ready")
 
-    await server.run(partial(event_handler.handle_event))
+    # Start server with handler factory
+    await server.run(
+        partial(
+            KaniTTSEventHandler,
+            wyoming_info,
+            args.model,
+            args.device,
+            args.sample_rate,
+        )
+    )
 
 
 if __name__ == "__main__":
