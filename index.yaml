@@ -538,6 +538,28 @@ entries:
   wyoming-piper:
   - apiVersion: v2
     appVersion: 2.1.1
+    created: "2025-11-08T06:43:39.007255471Z"
+    description: A Helm chart for Wyoming Piper text-to-speech service
+    digest: 5856d8357a27aa0e2c41c71ba4f1d2367ddcde3d3ba4b6ba4f4981ebda462fcd
+    keywords:
+    - piper
+    - wyoming
+    - text-to-speech
+    - tts
+    - home-assistant
+    - rhasspy
+    maintainers:
+    - name: mikesmitty
+    name: wyoming-piper
+    sources:
+    - https://github.com/rhasspy/wyoming-piper
+    - https://github.com/rhasspy/piper
+    type: application
+    urls:
+    - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-piper-0.6.1/wyoming-piper-0.6.1.tgz
+    version: 0.6.1
+  - apiVersion: v2
+    appVersion: 2.1.1
     created: "2025-11-06T04:57:41.582754471Z"
     description: A Helm chart for Wyoming Piper text-to-speech service
     digest: c356703f24839d14480bfb5910944aa9a596e1d385c84d90195fbcab22519c58
@@ -708,4 +730,4 @@ entries:
     urls:
     - https://github.com/mikesmitty/wyoming-helm/releases/download/wyoming-whisper-0.5.0/wyoming-whisper-0.5.0.tgz
     version: 0.5.0
-generated: "2025-11-07T02:03:03.482563834Z"
+generated: "2025-11-08T06:43:39.246460962Z"
