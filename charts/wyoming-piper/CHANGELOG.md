@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-piper-v0.6.1...wyoming-piper-v0.7.0) (2025-11-08)
+
+
+### Features
+
+* normalize Helm chart OCI paths and container image names ([f7e964b](https://github.com/mikesmitty/wyoming-helm/commit/f7e964b57be2116ec968d6dbf69b07276a30c10a))
+
 ## [0.6.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-piper-0.6.0...wyoming-piper-v0.6.1) (2025-11-08)
 
 
