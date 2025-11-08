@@ -2,8 +2,6 @@ name: Kokoro Wyoming TTS Image
 
 on:
   push:
-    branches:
-      - main
     paths:
       - ".github/workflows/build-kokoro-wyoming.yaml"
       - "charts/kokoro-wyoming/docker/**"
