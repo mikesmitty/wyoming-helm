@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.5](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.6.4...kokoro-wyoming-v0.6.5) (2025-11-09)
+
+
+### Bug Fixes
+
+* trigger releases ([8763c41](https://github.com/mikesmitty/wyoming-helm/commit/8763c41ad4d6b4d8aa9485b53aefdb0ff405dee4))
+
 ## [0.6.4](https://github.com/mikesmitty/wyoming-helm/compare/kokoro-wyoming-v0.6.3...kokoro-wyoming-v0.6.4) (2025-11-08)
 
 
