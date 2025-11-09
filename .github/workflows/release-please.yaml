@@ -58,42 +58,20 @@ jobs:
         with:
           version: v3.19.0
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install crane
-        uses: imjasonh/setup-crane@v0.4
-
-      - name: Ensure chart packages exist
-        run: |
-          # Check each chart directory
-          for chart_dir in charts/*; do
-            if [ ! -d "${chart_dir}" ]; then
-              continue
-            fi
-
-            chart_name=$(basename "${chart_dir}")
-
-            # Try to list tags - if it fails, package doesn't exist
-            if ! crane ls "${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${chart_name}" &>/dev/null; then
-              echo "Creating package for ${chart_name}..."
-              # Create a fresh empty tarball each time to ensure unique blobs
-              # This avoids crane trying to cross-mount blobs to packages that don't exist yet
-              tar czf /tmp/empty.tar.gz --files-from /dev/null
-              crane append --oci-empty-base -f /tmp/empty.tar.gz -t "${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${chart_name}:init"
-            fi
-          done
-
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         id: cr
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_SKIP_EXISTING: "true"
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.cr.outputs.changed_charts }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Charts to GHCR
         if: ${{ steps.cr.outputs.changed_charts }}
