@@ -70,9 +70,6 @@ jobs:
 
       - name: Ensure chart packages exist
         run: |
-          # Create empty tarball for initializing packages
-          tar czf /tmp/empty.tar.gz --files-from /dev/null
-
           # Check each chart directory
           for chart_dir in charts/*; do
             if [ ! -d "${chart_dir}" ]; then
@@ -84,6 +81,9 @@ jobs:
             # Try to list tags - if it fails, package doesn't exist
             if ! crane ls "${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${chart_name}" &>/dev/null; then
               echo "Creating package for ${chart_name}..."
+              # Create a fresh empty tarball each time to ensure unique blobs
+              # This avoids crane trying to cross-mount blobs to packages that don't exist yet
+              tar czf /tmp/empty.tar.gz --files-from /dev/null
               crane append --oci-empty-base -f /tmp/empty.tar.gz -t "${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${chart_name}:init"
             fi
           done
