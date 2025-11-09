@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-kanitts-v0.3.0...wyoming-kanitts-v0.3.1) (2025-11-09)
+
+
+### Bug Fixes
+
+* trigger fixed release workflow ([9fc892f](https://github.com/mikesmitty/wyoming-helm/commit/9fc892f01ab97d339f30ca9b75418f6fca213e0f))
+
 ## [0.3.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-kanitts-v0.2.0...wyoming-kanitts-v0.3.0) (2025-11-08)
 
 
