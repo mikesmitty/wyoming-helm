@@ -2,7 +2,7 @@ apiVersion: v2
 name: wyoming-whisper
 description: A Helm chart for Wyoming Whisper speech-to-text service
 type: application
-version: 0.7.0
+version: 0.7.1
 appVersion: "3.0.0"
 keywords:
   - whisper
