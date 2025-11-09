@@ -20,7 +20,7 @@ from wyoming.audio import AudioChunk, AudioStop
 
 _LOGGER = logging.getLogger(__name__)
 
-VERSION = "0.3.2"  # x-release-please-version
+VERSION = "0.3.3"  # x-release-please-version
 
 # Will be imported after torch device is configured
 KaniTTS = None
