@@ -46,13 +46,6 @@ spec:
           value: "{{ .Values.persistence.mountPath }}/huggingface"
         - name: TRANSFORMERS_CACHE
           value: "{{ .Values.persistence.mountPath }}/huggingface"
-        # Intel XPU environment variables
-        {{- if eq .Values.device "xpu" }}
-        - name: ONEAPI_DEVICE_SELECTOR
-          value: "{{ .Values.xpu.backend }}:{{ .Values.xpu.deviceIndex }}"
-        - name: PYTORCH_ENABLE_XPU
-          value: "{{ .Values.env.PYTORCH_ENABLE_XPU }}"
-        {{- end }}
         # Additional environment variables from values
         {{- range $key, $value := .Values.env }}
         - name: {{ $key }}
