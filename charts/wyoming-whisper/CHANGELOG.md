@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-0.7.0...wyoming-whisper-v0.7.1) (2025-11-09)
+
+
+### Bug Fixes
+
+* trigger releases ([8763c41](https://github.com/mikesmitty/wyoming-helm/commit/8763c41ad4d6b4d8aa9485b53aefdb0ff405dee4))
+
 ## [0.7.0](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-whisper-0.6.3...wyoming-whisper-v0.7.0) (2025-11-09)
 
 
