@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-kanitts-v0.3.2...wyoming-kanitts-v0.3.3) (2025-11-09)
+
+
+### Bug Fixes
+
+* remove duplicate env vars ([c044e5f](https://github.com/mikesmitty/wyoming-helm/commit/c044e5ff6876482048893986605373e33c8fd96c))
+
 ## [0.3.2](https://github.com/mikesmitty/wyoming-helm/compare/wyoming-kanitts-v0.3.1...wyoming-kanitts-v0.3.2) (2025-11-09)
 
 
