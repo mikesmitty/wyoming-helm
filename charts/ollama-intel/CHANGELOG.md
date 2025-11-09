@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.5.1...ollama-intel-v0.5.2) (2025-11-09)
+
+
+### Bug Fixes
+
+* trigger releases ([8763c41](https://github.com/mikesmitty/wyoming-helm/commit/8763c41ad4d6b4d8aa9485b53aefdb0ff405dee4))
+
 ## [0.5.1](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.5.0...ollama-intel-v0.5.1) (2025-11-09)
 
 
