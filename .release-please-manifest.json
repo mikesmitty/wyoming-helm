@@ -1,6 +1,6 @@
 {
     "charts/wyoming-whisper": "0.7.1",
-    "charts/wyoming-piper": "0.7.1",
+    "charts/wyoming-piper": "0.7.2",
     "charts/kokoro-wyoming": "0.6.4",
     "charts/ollama-intel": "0.5.1",
     "charts/wyoming-kanitts": "0.3.2"
