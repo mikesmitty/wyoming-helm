@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.9.8-python3.12-trixie-slim
+FROM ghcr.io/astral-sh/uv:0.9.9-python3.12-trixie-slim
 
 # Version comment to trigger a rebuild when updated
 # x-release-please-start-version
