@@ -4,7 +4,7 @@ description: A Helm chart for Ollama with Intel GPU support using Vulkan and Ope
 type: application
 version: 0.5.2
 # renovate: image=ollama/ollama
-appVersion: 0.12.10
+appVersion: 0.12.11
 keywords:
   - ollama
   - intel

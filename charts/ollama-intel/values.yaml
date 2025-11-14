@@ -7,8 +7,8 @@ ollama:
     type: Recreate
 
   image:
-    repository: ghcr.io/mikesmitty/ollama-vulkan
-    tag: ""
+    repository: ollama/ollama
+    tag: "0.12.11"
     pullPolicy: IfNotPresent
 
   service:
@@ -21,6 +21,8 @@ ollama:
     OLLAMA_HOST: "0.0.0.0:11434"
     # Disable keep-alive to prevent model loading issues
     OLLAMA_KEEP_ALIVE: "-1"
+    # Enable Vulkan GPU acceleration
+    OLLAMA_VULKAN: "1"
 
   # Additional environment variables
   extraEnv: []
