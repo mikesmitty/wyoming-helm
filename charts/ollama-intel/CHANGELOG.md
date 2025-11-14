@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.6.0...ollama-intel-v0.7.0) (2025-11-14)
+
+
+### Features
+
+* switch to upstream llama.cpp image for vulkan ([c06e487](https://github.com/mikesmitty/wyoming-helm/commit/c06e487ee3fb2c8ae37b30a3509a2ba4d67a6f63))
+
 ## [0.6.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.5.2...ollama-intel-v0.6.0) (2025-11-14)
 
 
