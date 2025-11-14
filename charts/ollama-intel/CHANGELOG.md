@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.5.2...ollama-intel-v0.6.0) (2025-11-14)
+
+
+### Features
+
+* switch to upstream ollama image for vulkan ([f475a8e](https://github.com/mikesmitty/wyoming-helm/commit/f475a8e9b8ad9ef1f84edebb3ac2ac601b12675d))
+
 ## [0.5.2](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.5.1...ollama-intel-v0.5.2) (2025-11-09)
 
 
