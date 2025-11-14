@@ -2,7 +2,7 @@ apiVersion: v2
 name: ollama-intel
 description: A Helm chart for Ollama with Intel GPU support using Vulkan and Open WebUI
 type: application
-version: 0.5.2
+version: 0.6.0
 # renovate: image=ollama/ollama
 appVersion: 0.12.11
 keywords:
