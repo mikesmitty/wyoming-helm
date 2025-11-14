@@ -235,8 +235,8 @@ llamacpp:
     type: Recreate
 
   image:
-    repository: ghcr.io/mikesmitty/llama-cpp-intel
-    tag: server-intel-b6869
+    repository: ghcr.io/ggml-org/llama.cpp
+    tag: server-vulkan-b7045
     pullPolicy: IfNotPresent
 
   service:
