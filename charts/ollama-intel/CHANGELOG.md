@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.7.0...ollama-intel-v0.8.0) (2025-12-07)
+
+
+### Features
+
+* Update dependency open-webui/open-webui to v0.6.41 ([#88](https://github.com/mikesmitty/wyoming-helm/issues/88)) ([dbf1b89](https://github.com/mikesmitty/wyoming-helm/commit/dbf1b890cdd09551ab72a6d764a199d8758f49d6))
+* Update ollama/ollama Docker tag to v0.13.1 ([#86](https://github.com/mikesmitty/wyoming-helm/issues/86)) ([cfc6a44](https://github.com/mikesmitty/wyoming-helm/commit/cfc6a442c6dfdf8d7735d76335182e4c61d01126))
+
 ## [0.7.0](https://github.com/mikesmitty/wyoming-helm/compare/ollama-intel-v0.6.0...ollama-intel-v0.7.0) (2025-11-14)
 
 
