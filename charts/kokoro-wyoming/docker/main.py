@@ -25,7 +25,7 @@ from wyoming.event import Event
 import re
 
 _LOGGER = log.getChild(__name__)
-VERSION = "0.6.7" # x-release-please-version
+VERSION = "0.6.8" # x-release-please-version
 
 
 def split_into_sentences(text: str) -> list[str]:
