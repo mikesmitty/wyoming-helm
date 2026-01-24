@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Use Intel oneAPI runtime as base image
-FROM intel/oneapi-runtime:2025.3.0-0-devel-ubuntu24.04
+FROM intel/oneapi-runtime:2025.3.1-0-devel-ubuntu24.04
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
