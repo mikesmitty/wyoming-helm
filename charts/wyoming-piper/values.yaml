@@ -6,7 +6,7 @@ strategy:
 
 image:
   repository: rhasspy/wyoming-piper
-  tag: 2.1.2
+  tag: 2.4.3
   pullPolicy: IfNotPresent
 
 service:
