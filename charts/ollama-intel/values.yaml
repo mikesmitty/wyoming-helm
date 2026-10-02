@@ -8,7 +8,7 @@ ollama:
 
   image:
     repository: ollama/ollama
-    tag: "0.13.1"
+    tag: "0.35.1"
     pullPolicy: IfNotPresent
 
   service:
